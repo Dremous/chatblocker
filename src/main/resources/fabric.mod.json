@@ -5,7 +5,7 @@
 	"name": "ChatBlock",
 	"description": "聊天关键词屏蔽：别人发送的含关键词消息自己不显示，自己发送的消息不受影响。",
 	"authors": [
-		"L1950"
+		"Dremous"
 	],
 	"contact": {},
 	"license": "CC0-1.0",

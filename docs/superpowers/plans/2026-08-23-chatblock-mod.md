@@ -226,7 +226,7 @@ Create `src/main/resources/fabric.mod.json`（覆盖模板文件）：
 	"name": "ChatBlock",
 	"description": "聊天关键词屏蔽：自己发送的含关键词消息仅自己不显示，其他玩家正常可见。",
 	"authors": [
-		"L1950"
+		"Dremous"
 	],
 	"contact": {},
 	"license": "CC0-1.0",
@@ -1022,7 +1022,7 @@ Read `src/main/resources/fabric.mod.json`，确认与以下一致（重点：`id
 	"name": "ChatBlock",
 	"description": "聊天关键词屏蔽：自己发送的含关键词消息仅自己不显示，其他玩家正常可见。",
 	"authors": [
-		"L1950"
+		"Dremous"
 	],
 	"contact": {},
 	"license": "CC0-1.0",
