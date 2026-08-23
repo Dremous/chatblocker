@@ -1,0 +1,16 @@
+# Gradle 构建产物
+build/
+.gradle/
+
+# IDE 配置
+.idea/
+*.iml
+.vscode/
+out/
+
+# Fabric Loom 运行目录
+run/
+
+# 操作系统杂项文件
+Thumbs.db
+.DS_Store
