@@ -37,7 +37,7 @@ public final class ChatBlockConfigScreen {
                         .group(ListOption.<String>createBuilder()
                                 .name(Component.literal("屏蔽关键词"))
                                 .description(OptionDescription.of(
-                                        Component.literal("消息包含任一关键词时，自己不显示该消息（不区分大小写）")))
+                                        Component.literal("别人发送的消息包含任一关键词时，自己不显示该消息（不区分大小写）")))
                                 .binding(List.of(), config::getKeywords, config::setKeywords)
                                 .controller(StringControllerBuilder::create)
                                 .initial("")
