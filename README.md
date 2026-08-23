@@ -56,4 +56,4 @@ Minecraft 1.21.8 / Fabric 纯客户端聊天关键词屏蔽 Mod：**别人**发�
 
 ## 许可证
 
-[CC0-1.0](LICENSE)
+[MIT](LICENSE)

@@ -8,7 +8,7 @@
 		"Dremous"
 	],
 	"contact": {},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/chatblock/icon.png",
 	"environment": "client",
 	"entrypoints": {
