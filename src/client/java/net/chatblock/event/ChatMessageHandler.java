@@ -1,5 +1,6 @@
 package net.chatblock.event;
 
+import java.util.Objects;
 import net.chatblock.config.ChatBlockConfig;
 import net.chatblock.filter.KeywordFilter;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
@@ -27,8 +28,8 @@ public final class ChatMessageHandler {
             if (client.player == null || sender == null) {
                 return true;
             }
-            // 只过滤自己发送的消息，别人的消息正常显示
-            if (!sender.getId().equals(client.player.getUUID())) {
+            // 只过滤自己发送的消息，别人的消息正常显示（getId 可能为 null，用 Objects.equals 防御）
+            if (!Objects.equals(sender.getId(), client.player.getUUID())) {
                 return true;
             }
             // 命中关键词则阻止显示
