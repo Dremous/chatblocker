@@ -20,3 +20,6 @@ logs/
 
 # 项目过程文档（不进入仓库）
 docs/
+
+# Modrinth 项目介绍（不进入仓库）
+MODRINTH_DESCRIPTION.md
