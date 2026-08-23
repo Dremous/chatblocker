@@ -21,10 +21,6 @@ import java.util.List;
  */
 public final class ChatBlockConfig {
 
-    /** 私有构造器：仅允许通过单例 INSTANCE 或静态工厂 fromDisk 获取实例 */
-    private ChatBlockConfig() {
-    }
-
     /** 全局单例，Mod 入口在初始化时设置文件路径并加载 */
     public static final ChatBlockConfig INSTANCE = new ChatBlockConfig();
 
@@ -39,6 +35,10 @@ public final class ChatBlockConfig {
 
     /** 配置文件路径，不参与序列化 */
     private transient Path filePath;
+
+    /** 私有构造器：仅允许通过单例 INSTANCE 或静态工厂 fromDisk 获取实例 */
+    private ChatBlockConfig() {
+    }
 
     public boolean isEnabled() {
         return enabled;
@@ -71,34 +71,41 @@ public final class ChatBlockConfig {
     }
 
     /**
-     * 从磁盘加载配置到当前实例。
+     * 从磁盘加载配置到当前实例。串行化以兼容命令与 GUI 的并发读写。
      *
-     * @return 成功解析返回 true；文件不存在或损坏返回 false（内存中已回退为默认配置）
+     * @return 成功解析返回 true；文件不存在或解析失败返回 false（失败时不改动当前内存配置）
      */
-    public boolean loadFromDisk() {
+    public synchronized boolean loadFromDisk() {
         if (filePath == null || !Files.exists(filePath)) {
             return false;
         }
         try (Reader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8)) {
             ChatBlockConfig loaded = GSON.fromJson(reader, ChatBlockConfig.class);
+            // 文件内容为字面 null 时 fromJson 返回 null，视为无效配置
+            if (loaded == null) {
+                LOGGER.warn("配置文件内容为空，已忽略：{}", filePath);
+                return false;
+            }
             this.enabled = loaded.enabled;
             this.setKeywords(loaded.keywords);
             return true;
         } catch (IOException | JsonParseException e) {
-            LOGGER.warn("配置文件解析失败，已回退默认配置：{}", filePath, e);
-            this.enabled = true;
-            this.keywords = new ArrayList<>();
+            // 解析失败时保留当前内存配置，仅记录警告
+            LOGGER.warn("配置文件解析失败，已忽略：{}", filePath, e);
             return false;
         }
     }
 
     /** 将当前配置写入磁盘；路径未设置时静默跳过。写入失败仅记录警告，不影响游戏。 */
-    public void saveToDisk() {
+    public synchronized void saveToDisk() {
         if (filePath == null) {
             return;
         }
         try {
-            Files.createDirectories(filePath.getParent());
+            // 相对路径可能没有父目录，此时无需创建
+            if (filePath.getParent() != null) {
+                Files.createDirectories(filePath.getParent());
+            }
             try (Writer writer = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8)) {
                 GSON.toJson(this, writer);
             }
