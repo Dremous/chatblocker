@@ -10,4 +10,4 @@ pluginManagement {
 }
 
 // 项目名应匹配 modid
-rootProject.name = 'chatblock'
+rootProject.name = 'chatblocker'

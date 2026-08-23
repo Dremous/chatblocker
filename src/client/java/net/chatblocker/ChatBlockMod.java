@@ -1,8 +1,8 @@
-package net.chatblock;
+package net.chatblocker;
 
-import net.chatblock.command.ChatBlockCommand;
-import net.chatblock.config.ChatBlockConfig;
-import net.chatblock.event.ChatMessageHandler;
+import net.chatblocker.command.ChatBlockCommand;
+import net.chatblocker.config.ChatBlockConfig;
+import net.chatblocker.event.ChatMessageHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -10,13 +10,13 @@ import net.fabricmc.loader.api.FabricLoader;
 public class ChatBlockMod implements ClientModInitializer {
 
     /** Mod ID */
-    public static final String MOD_ID = "chatblock";
+    public static final String MOD_ID = "chatblocker";
 
     @Override
     public void onInitializeClient() {
-        // 配置文件位于 .minecraft/config/chatblock.json
+        // 配置文件位于 .minecraft/config/chatblocker.json
         ChatBlockConfig.INSTANCE.setFilePath(
-                FabricLoader.getInstance().getConfigDir().resolve("chatblock.json"));
+                FabricLoader.getInstance().getConfigDir().resolve("chatblocker.json"));
         ChatBlockConfig.INSTANCE.loadFromDisk();
 
         // 注册消息过滤事件

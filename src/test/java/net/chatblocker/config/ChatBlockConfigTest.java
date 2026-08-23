@@ -1,4 +1,4 @@
-package net.chatblock.config;
+package net.chatblocker.config;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -30,7 +30,7 @@ class ChatBlockConfigTest {
     /** 保存后重新加载，内容一致（读写往返） */
     @Test
     void saveAndLoadRoundTrip() {
-        Path file = tempDir.resolve("chatblock.json");
+        Path file = tempDir.resolve("chatblocker.json");
         // fromDisk 对不存在的文件返回默认配置实例
         ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
         config.setEnabled(false);

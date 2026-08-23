@@ -1,4 +1,4 @@
-package net.chatblock.gui;
+package net.chatblocker.gui;
 
 import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.ListOption;
@@ -7,7 +7,7 @@ import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
 import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder;
-import net.chatblock.config.ChatBlockConfig;
+import net.chatblocker.config.ChatBlockConfig;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -24,7 +24,7 @@ public final class ChatBlockConfigScreen {
         ChatBlockConfig config = ChatBlockConfig.INSTANCE;
 
         return YetAnotherConfigLib.createBuilder()
-                .title(Component.literal("ChatBlock 设置"))
+                .title(Component.literal("ChatBlocker 设置"))
                 .category(ConfigCategory.createBuilder()
                         .name(Component.literal("屏蔽设置"))
                         .option(Option.<Boolean>createBuilder()

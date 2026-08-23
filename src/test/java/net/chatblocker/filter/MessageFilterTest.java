@@ -1,4 +1,4 @@
-package net.chatblock.filter;
+package net.chatblocker.filter;
 
 import org.junit.jupiter.api.Test;
 

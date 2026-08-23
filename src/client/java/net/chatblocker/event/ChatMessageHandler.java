@@ -1,8 +1,8 @@
-package net.chatblock.event;
+package net.chatblocker.event;
 
 import java.util.UUID;
-import net.chatblock.config.ChatBlockConfig;
-import net.chatblock.filter.MessageFilter;
+import net.chatblocker.config.ChatBlockConfig;
+import net.chatblocker.filter.MessageFilter;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.minecraft.client.Minecraft;
 

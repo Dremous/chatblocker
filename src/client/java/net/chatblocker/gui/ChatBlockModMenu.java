@@ -1,4 +1,4 @@
-package net.chatblock.gui;
+package net.chatblocker.gui;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;

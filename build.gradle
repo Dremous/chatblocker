@@ -21,7 +21,7 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"chatblock" {
+		"chatblocker" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}

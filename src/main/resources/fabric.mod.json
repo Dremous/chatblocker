@@ -1,22 +1,22 @@
 {
 	"schemaVersion": 1,
-	"id": "chatblock",
+	"id": "chatblocker",
 	"version": "${version}",
-	"name": "ChatBlock",
+	"name": "ChatBlocker",
 	"description": "聊天关键词屏蔽：别人发送的含关键词消息自己不显示，自己发送的消息不受影响。",
 	"authors": [
 		"Dremous"
 	],
 	"contact": {},
 	"license": "MIT",
-	"icon": "assets/chatblock/icon.png",
+	"icon": "assets/chatblocker/icon.png",
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"net.chatblock.ChatBlockMod"
+			"net.chatblocker.ChatBlockMod"
 		],
 		"modmenu": [
-			"net.chatblock.gui.ChatBlockModMenu"
+			"net.chatblocker.gui.ChatBlockModMenu"
 		]
 	},
 	"depends": {

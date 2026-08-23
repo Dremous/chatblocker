@@ -1,4 +1,4 @@
-package net.chatblock.config;
+package net.chatblocker.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -24,7 +24,7 @@ public final class ChatBlockConfig {
     /** 全局单例，Mod 入口在初始化时设置文件路径并加载 */
     public static final ChatBlockConfig INSTANCE = new ChatBlockConfig();
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("chatblock");
+    private static final Logger LOGGER = LoggerFactory.getLogger("chatblocker");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     /** 是否启用屏蔽 */

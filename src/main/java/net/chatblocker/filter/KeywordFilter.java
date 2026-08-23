@@ -1,4 +1,4 @@
-package net.chatblock.filter;
+package net.chatblocker.filter;
 
 import java.util.Collection;
 import java.util.Locale;

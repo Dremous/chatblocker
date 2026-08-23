@@ -1,8 +1,8 @@
-package net.chatblock.command;
+package net.chatblocker.command;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import net.chatblock.config.ChatBlockConfig;
+import net.chatblocker.config.ChatBlockConfig;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
@@ -10,7 +10,7 @@ import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
-/** 客户端命令 /chatblock add|remove|list|reload，用于维护屏蔽关键词。 */
+/** 客户端命令 /chatblocker add|remove|list|reload，用于维护屏蔽关键词。 */
 public final class ChatBlockCommand {
 
     private ChatBlockCommand() {
@@ -19,7 +19,7 @@ public final class ChatBlockCommand {
     /** 注册命令树（Mod 入口调用一次） */
     public static void register() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) ->
-                dispatcher.register(ClientCommandManager.literal("chatblock")
+                dispatcher.register(ClientCommandManager.literal("chatblocker")
                         .then(ClientCommandManager.literal("add")
                                 .then(ClientCommandManager.argument("keyword", StringArgumentType.greedyString())
                                         .executes(ChatBlockCommand::executeAdd)))
@@ -32,7 +32,7 @@ public final class ChatBlockCommand {
                                 .executes(ChatBlockCommand::executeReload))));
     }
 
-    /** /chatblock add <关键词>：添加关键词并立即写盘 */
+    /** /chatblocker add <关键词>：添加关键词并立即写盘 */
     private static int executeAdd(CommandContext<FabricClientCommandSource> context) {
         String keyword = StringArgumentType.getString(context, "keyword").trim();
         FabricClientCommandSource source = context.getSource();
@@ -52,7 +52,7 @@ public final class ChatBlockCommand {
         return 1;
     }
 
-    /** /chatblock remove <关键词>：移除关键词并立即写盘 */
+    /** /chatblocker remove <关键词>：移除关键词并立即写盘 */
     private static int executeRemove(CommandContext<FabricClientCommandSource> context) {
         String keyword = StringArgumentType.getString(context, "keyword").trim();
         FabricClientCommandSource source = context.getSource();
@@ -67,7 +67,7 @@ public final class ChatBlockCommand {
         return 1;
     }
 
-    /** /chatblock list：列出当前全部关键词 */
+    /** /chatblocker list：列出当前全部关键词 */
     private static int executeList(CommandContext<FabricClientCommandSource> context) {
         FabricClientCommandSource source = context.getSource();
         List<String> keywords = ChatBlockConfig.INSTANCE.getKeywords();
@@ -81,7 +81,7 @@ public final class ChatBlockCommand {
         return 1;
     }
 
-    /** /chatblock reload：从磁盘重新加载配置 */
+    /** /chatblocker reload：从磁盘重新加载配置 */
     private static int executeReload(CommandContext<FabricClientCommandSource> context) {
         FabricClientCommandSource source = context.getSource();
         boolean success = ChatBlockConfig.INSTANCE.loadFromDisk();
