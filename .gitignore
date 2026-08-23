@@ -14,3 +14,6 @@ run/
 # 操作系统杂项文件
 Thumbs.db
 .DS_Store
+
+# 运行时日志
+logs/
