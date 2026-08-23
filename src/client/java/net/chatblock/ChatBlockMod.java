@@ -1,5 +1,6 @@
 package net.chatblock;
 
+import net.chatblock.command.ChatBlockCommand;
 import net.chatblock.config.ChatBlockConfig;
 import net.chatblock.event.ChatMessageHandler;
 import net.fabricmc.api.ClientModInitializer;
@@ -20,5 +21,8 @@ public class ChatBlockMod implements ClientModInitializer {
 
         // 注册消息过滤事件
         ChatMessageHandler.register();
+
+        // 注册客户端命令
+        ChatBlockCommand.register();
     }
 }
