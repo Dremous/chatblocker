@@ -30,7 +30,7 @@ public final class ChatBlockConfigScreen {
                         .option(Option.<Boolean>createBuilder()
                                 .name(Component.literal("启用屏蔽"))
                                 .description(OptionDescription.of(
-                                        Component.literal("关闭后不再过滤任何消息")))
+                                        Component.literal("关闭后不再过滤任何消息。修改立即生效，保存用于持久化")))
                                 .binding(true, config::isEnabled, config::setEnabled)
                                 .controller(TickBoxControllerBuilder::create)
                                 .build())
