@@ -21,6 +21,10 @@ import java.util.List;
  */
 public final class ChatBlockConfig {
 
+    /** 私有构造器：仅允许通过单例 INSTANCE 或静态工厂 fromDisk 获取实例 */
+    private ChatBlockConfig() {
+    }
+
     /** 全局单例，Mod 入口在初始化时设置文件路径并加载 */
     public static final ChatBlockConfig INSTANCE = new ChatBlockConfig();
 

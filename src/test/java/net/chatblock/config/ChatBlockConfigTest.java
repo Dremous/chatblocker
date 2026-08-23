@@ -30,7 +30,8 @@ class ChatBlockConfigTest {
     @Test
     void saveAndLoadRoundTrip() {
         Path file = tempDir.resolve("chatblock.json");
-        ChatBlockConfig config = new ChatBlockConfig();
+        // fromDisk 对不存在的文件返回默认配置实例
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
         config.setFilePath(file);
         config.setEnabled(false);
         config.setKeywords(List.of("垃圾", "badword"));
@@ -66,7 +67,8 @@ class ChatBlockConfigTest {
     @Test
     void filePathNotSerialized() throws Exception {
         Path file = tempDir.resolve("no_path.json");
-        ChatBlockConfig config = new ChatBlockConfig();
+        // fromDisk 对不存在的文件返回默认配置实例
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
         config.setFilePath(file);
         config.setKeywords(List.of("test"));
         config.saveToDisk();
