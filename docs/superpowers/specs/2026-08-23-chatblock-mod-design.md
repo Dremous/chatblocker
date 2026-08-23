@@ -6,13 +6,13 @@
 
 ## 1. 需求概述
 
-制作一个 Fabric 客户端 Mod：当**玩家自己**发送的聊天消息包含屏蔽关键词时，**仅自己看不到**该消息；消息正常发往服务器，其他玩家正常可见。
+制作一个 Fabric 客户端 Mod：当**其他玩家**发送的聊天消息包含屏蔽关键词时，**自己不显示**该消息；自己发送的消息不受影响（豁免）。
 
 需求要点（已与用户确认）：
 
 | 项目 | 决定 |
 |---|---|
-| 屏蔽行为 | 仅自己看不到（消息照常发送与广播） |
+| 屏蔽行为 | 屏蔽别人发送的含关键词消息（自己看不到）；自己发送的消息豁免，不屏蔽 |
 | 关键词配置 | JSON 配置文件 + 游戏内命令，两者结合 |
 | 匹配规则 | 包含匹配，不区分大小写（中文天然不受影响） |
 | 图形界面 | 需要 ModMenu + YACL 配置界面 |
@@ -26,7 +26,8 @@ src/main/java/net/chatblock/
 ├── config/
 │   └── ChatBlockConfig.java    # 配置模型（enabled + keywords），Gson 读写 config/chatblock.json
 ├── filter/
-│   └── KeywordFilter.java      # 纯逻辑：包含匹配 + 不区分大小写
+│   ├── KeywordFilter.java      # 纯逻辑：包含匹配 + 不区分大小写
+│   └── MessageFilter.java      # 纯逻辑：屏蔽判定（自己豁免、sender 缺失放行、命中屏蔽）
 ├── event/
 │   └── ChatMessageHandler.java # 注册 ClientReceiveMessageEvents.ALLOW_CHAT 回调
 ├── command/
@@ -56,7 +57,7 @@ src/main/java/net/chatblock/
 - `ClientReceiveMessageEvents.ALLOW_CHAT`：回调签名
   `boolean allowReceiveChatMessage(Text message, @Nullable SignedMessage signedMessage, @Nullable GameProfile sender, MessageType.Parameters params, Instant receptionTimestamp)`
   返回 `false` 则消息不显示并触发 `CHAT_CANCELED`。
-- 判定"是自己发的消息"：`sender != null && sender.getId().equals(MinecraftClient.getInstance().player.getUuid())`。
+- 判定"自己发的消息"：`sender != null && sender.getId().equals(MinecraftClient.getInstance().player.getUuid())`，用于豁免判定（自己发的消息不屏蔽）。
 - 已确认 1.21.1+ 客户端发送消息**没有本地即时回显**（`ChatScreen.sendMessage` 仅调 `networkHandler.sendChatMessage`），服务器回传路径即唯一显示路径，因此该事件覆盖全部显示场景，无需 mixin。
 
 ## 3. 配置设计
@@ -95,10 +96,10 @@ src/main/java/net/chatblock/
 3. `ChatMessageHandler` 判定：
    - `enabled == false` → 放行；
    - 玩家不在游戏中（`player == null`）→ 放行；
-   - `sender == null` → 放行（不误伤系统/插件消息）；
-   - `sender` 不是自己 → 放行（别人的消息正常显示）；
-   - `sender` 是自己且文本（小写化后）包含任一关键词 → 返回 `false`，消息不在自己聊天框显示。
-4. 其他玩家的客户端：`sender` 不是他们自己 → 正常显示，屏蔽仅对发送者本人生效。
+   - `sender == null` 或 sender id 为 null → 放行（不误伤系统/插件消息）；
+   - `sender` 是自己 → 放行（自己发送的消息豁免，不屏蔽）；
+   - `sender` 是别人且文本（小写化后）包含任一关键词 → 返回 `false`，消息不在自己聊天框显示。
+4. 过滤仅在安装者自己的客户端生效，不影响其他玩家看到的内容；自己发送的消息永远正常显示。
 
 ## 6. 错误处理
 
@@ -116,17 +117,20 @@ src/main/java/net/chatblock/
 - **JUnit 单元测试**：
   - `KeywordFilter`：命中、未命中、大小写不敏感、中文关键词、空消息、空关键词列表、空白消息。
   - `ChatBlockConfig`：默认生成、读写往返、损坏 JSON 回退。
+  - `MessageFilter`：别人命中→屏蔽、别人未命中→放行、自己命中→放行（豁免）、enabled 关闭、sender/selfId 为 null、空关键词列表。
 - **构建验证**：`gradlew build`（含测试）通过。
-- **手动集成测试**：`gradlew runClient` 启动，单人世界（集成服务器，走服务器广播路径）验证：
-  1. 发送含关键词消息 → 自己的聊天框不显示；
-  2. 发送正常消息 → 正常显示；
-  3. `/chatblock add/remove/list/reload` 行为正确；
-  4. ModMenu 中打开配置界面可编辑关键词。
+- **手动集成测试**：`gradlew runClient` 启动，单人世界 + 局域网第二客户端验证：
+  1. 发送含关键词消息 → 自己的聊天框**正常显示**（自己豁免）；
+  2. 第二客户端（局域网加入，未装或装了本 Mod 均可）发送含关键词消息 → 本机不显示，对方客户端正常显示；
+  3. 发送正常消息 → 正常显示；
+  4. `/chatblock add/remove/list/reload` 行为正确；
+  5. ModMenu 中打开配置界面可编辑关键词。
 
 ## 8. 范围外（YAGNI）
 
 - 不做服务端组件、不做全员屏蔽；
 - 不做正则匹配（仅包含匹配）；
 - 不做关键词白名单/权限体系；
+- 不做"自己豁免"的开关（固定豁免，自己发送的消息永远不屏蔽）；
 - 不做多语言本地化（界面文案用简体中文）；
 - 不发布到 Modrinth/CurseForge（仅本地构建使用）。
