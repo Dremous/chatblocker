@@ -88,9 +88,9 @@ public final class ChatBlockCommand {
 
         if (success) {
             source.sendFeedback(Component.literal("§a已重新加载配置"));
-        } else {
-            source.sendFeedback(Component.literal("§c配置文件不存在或损坏，已回退默认配置"));
+            return 1;
         }
-        return 1;
+        source.sendFeedback(Component.literal("§c配置文件不存在或损坏，已保留当前配置"));
+        return 0;
     }
 }
