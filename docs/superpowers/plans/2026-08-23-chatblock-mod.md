@@ -242,8 +242,10 @@ Create `src/main/resources/fabric.mod.json`（覆盖模板文件）：
 		"minecraft": "~1.21.8",
 		"java": ">=21",
 		"fabric-api": "*",
-		"modmenu": "*",
-		"yet_another_config_lib_v3": "*"
+		"yet_another_config_lib_v3": ">=3.8.1"
+	},
+	"suggests": {
+		"modmenu": ">=15.0.2"
 	}
 }
 ```
@@ -1039,8 +1041,10 @@ Read `src/main/resources/fabric.mod.json`，确认与以下一致（重点：`id
 		"minecraft": "~1.21.8",
 		"java": ">=21",
 		"fabric-api": "*",
-		"modmenu": "*",
-		"yet_another_config_lib_v3": "*"
+		"yet_another_config_lib_v3": ">=3.8.1"
+	},
+	"suggests": {
+		"modmenu": ">=15.0.2"
 	}
 }
 ```
