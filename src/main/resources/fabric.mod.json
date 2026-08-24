@@ -20,13 +20,13 @@
 		]
 	},
 	"depends": {
-		"fabricloader": ">=0.19.3",
-		"minecraft": "~1.21.8",
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.21.1",
 		"java": ">=21",
 		"fabric-api": "*",
 		"yet_another_config_lib_v3": ">=3.8.1"
 	},
 	"suggests": {
-		"modmenu": ">=15.0.2"
+		"modmenu": ">=11.0.3"
 	}
 }
