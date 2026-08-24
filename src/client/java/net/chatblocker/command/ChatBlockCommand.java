@@ -3,7 +3,7 @@ package net.chatblocker.command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.chatblocker.config.ChatBlockConfig;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.network.chat.Component;
@@ -18,18 +18,18 @@ public final class ChatBlockCommand {
 
     /** 注册命令树（Mod 入口调用一次） */
     public static void register() {
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) ->
-                dispatcher.register(ClientCommandManager.literal("chatblocker")
-                        .then(ClientCommandManager.literal("add")
-                                .then(ClientCommandManager.argument("keyword", StringArgumentType.greedyString())
-                                        .executes(ChatBlockCommand::executeAdd)))
-                        .then(ClientCommandManager.literal("remove")
-                                .then(ClientCommandManager.argument("keyword", StringArgumentType.greedyString())
-                                        .executes(ChatBlockCommand::executeRemove)))
-                        .then(ClientCommandManager.literal("list")
-                                .executes(ChatBlockCommand::executeList))
-                        .then(ClientCommandManager.literal("reload")
-                                .executes(ChatBlockCommand::executeReload))));
+		ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) ->
+				dispatcher.register(ClientCommands.literal("chatblocker")
+						.then(ClientCommands.literal("add")
+								.then(ClientCommands.argument("keyword", StringArgumentType.greedyString())
+										.executes(ChatBlockCommand::executeAdd)))
+						.then(ClientCommands.literal("remove")
+								.then(ClientCommands.argument("keyword", StringArgumentType.greedyString())
+										.executes(ChatBlockCommand::executeRemove)))
+						.then(ClientCommands.literal("list")
+								.executes(ChatBlockCommand::executeList))
+						.then(ClientCommands.literal("reload")
+								.executes(ChatBlockCommand::executeReload))));
     }
 
     /** /chatblocker add <关键词>：添加关键词并立即写盘（忽略大小写去重） */
