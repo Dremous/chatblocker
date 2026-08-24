@@ -1,5 +1,5 @@
 plugins {
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 	id 'com.modrinth.minotaur' version "${minotaur_version}"
 	id 'net.darkhax.curseforgegradle' version "${curseforgegradle_version}"
@@ -33,17 +33,16 @@ loom {
 dependencies {
 	// 版本见 gradle.properties
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.officialMojangMappings()
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API：提供聊天事件与客户端命令 API
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	// ModMenu：Mod 列表中的配置入口
-	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+	implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 
 	// YACL：配置界面库
-	modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+	implementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
 
 	// 单元测试
 	testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
@@ -62,14 +61,14 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 25
 }
 
 java {
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
 test {
@@ -105,7 +104,7 @@ modrinth {
 	projectId = project.modrinth_project_id
 	versionNumber = project.version
 	versionType = "release"
-	uploadFile = remapJar
+	uploadFile = jar
 	gameVersions = project.publish_game_versions.split(",").toList()
 	loaders = ["fabric"]
 	// 更新日志由 CI 从 CHANGELOG.md 提取并注入环境变量
@@ -131,7 +130,7 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
 	apiToken = System.getenv("CURSEFORGE_TOKEN")
 	group = "publishing"
 
-	def mainFile = upload(project.curseforge_project_id, remapJar)
+	def mainFile = upload(project.curseforge_project_id, jar)
 	mainFile.releaseType = "release"
 	mainFile.changelog = System.getenv("CHANGELOG_CONTENT") ?: "更新内容见 CHANGELOG.md"
 	mainFile.changelogType = "markdown"
