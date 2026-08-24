@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Mod 配置模型：enabled 开关 + 屏蔽关键词列表。
@@ -62,6 +63,46 @@ public final class ChatBlockConfig {
     /** 返回内部可变列表；修改后需调用 saveToDisk() 持久化 */
     public List<String> getKeywords() {
         return keywords;
+    }
+
+    /**
+     * 添加屏蔽关键词（忽略大小写去重，与屏蔽匹配语义一致）。
+     * 空白词拒绝添加。调用后需 saveToDisk() 持久化。
+     *
+     * @return 添加成功返回 true；空白或已存在（忽略大小写）返回 false
+     */
+    public boolean addKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return false;
+        }
+        String normalized = keyword.trim().toLowerCase(Locale.ROOT);
+        for (String existing : keywords) {
+            if (existing.toLowerCase(Locale.ROOT).equals(normalized)) {
+                return false;
+            }
+        }
+        keywords.add(keyword.trim());
+        return true;
+    }
+
+    /**
+     * 移除屏蔽关键词（忽略大小写，与屏蔽匹配语义一致）。
+     * 空白词不处理。调用后需 saveToDisk() 持久化。
+     *
+     * @return 移除成功返回 true；不存在返回 false
+     */
+    public boolean removeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return false;
+        }
+        String normalized = keyword.trim().toLowerCase(Locale.ROOT);
+        for (int i = 0; i < keywords.size(); i++) {
+            if (keywords.get(i).toLowerCase(Locale.ROOT).equals(normalized)) {
+                keywords.remove(i);
+                return true;
+            }
+        }
+        return false;
     }
 
     /** 替换关键词列表，自动过滤 null 与空白项 */

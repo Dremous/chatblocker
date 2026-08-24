@@ -144,4 +144,50 @@ class ChatBlockConfigTest {
         ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
         assertTrue(config.isExemptOwnEcho());
     }
+
+    /** addKeyword 正常添加新词 */
+    @Test
+    void addKeywordAppends() {
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(tempDir.resolve("add_ok.json"));
+        assertTrue(config.addKeyword("垃圾"));
+        assertEquals(List.of("垃圾"), config.getKeywords());
+    }
+
+    /** addKeyword 忽略大小写去重：已存在同词（大小写不同）时拒绝添加 */
+    @Test
+    void addKeywordRejectsCaseInsensitiveDuplicate() {
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(tempDir.resolve("add_dup.json"));
+        config.addKeyword("BadWord");
+
+        assertFalse(config.addKeyword("badword"));
+        assertEquals(List.of("BadWord"), config.getKeywords());
+    }
+
+    /** addKeyword 拒绝空白词 */
+    @Test
+    void addKeywordRejectsBlank() {
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(tempDir.resolve("add_blank.json"));
+        assertFalse(config.addKeyword("   "));
+        assertTrue(config.getKeywords().isEmpty());
+    }
+
+    /** removeKeyword 忽略大小写移除已存在的词 */
+    @Test
+    void removeKeywordCaseInsensitive() {
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(tempDir.resolve("remove_ok.json"));
+        config.addKeyword("BadWord");
+
+        assertTrue(config.removeKeyword("badword"));
+        assertTrue(config.getKeywords().isEmpty());
+    }
+
+    /** removeKeyword 移除不存在的词返回 false */
+    @Test
+    void removeKeywordMissing() {
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(tempDir.resolve("remove_miss.json"));
+        config.addKeyword("垃圾");
+
+        assertFalse(config.removeKeyword("badword"));
+        assertEquals(List.of("垃圾"), config.getKeywords());
+    }
 }

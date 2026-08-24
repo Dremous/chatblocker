@@ -2,6 +2,10 @@
 
 本项目遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
+## 1.0.3
+
+- 修复：`/chatblocker add` 与 `remove` 改为忽略大小写，与屏蔽匹配语义一致（去重不再区分大小写）
+
 ## 1.0.2
 
 - 新增：离线服务器自己消息回显豁免（配置项 exemptOwnEcho，默认开启）

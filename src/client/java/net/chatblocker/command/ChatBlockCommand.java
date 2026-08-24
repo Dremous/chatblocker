@@ -32,7 +32,7 @@ public final class ChatBlockCommand {
                                 .executes(ChatBlockCommand::executeReload))));
     }
 
-    /** /chatblocker add <关键词>：添加关键词并立即写盘 */
+    /** /chatblocker add <关键词>：添加关键词并立即写盘（忽略大小写去重） */
     private static int executeAdd(CommandContext<FabricClientCommandSource> context) {
         String keyword = StringArgumentType.getString(context, "keyword").trim();
         FabricClientCommandSource source = context.getSource();
@@ -42,23 +42,22 @@ public final class ChatBlockCommand {
             source.sendFeedback(Component.literal("§c关键词不能为空"));
             return 0;
         }
-        if (config.getKeywords().contains(keyword)) {
-            source.sendFeedback(Component.literal("§e关键词已存在：" + keyword));
+        if (!config.addKeyword(keyword)) {
+            source.sendFeedback(Component.literal("§e关键词已存在（不区分大小写）：" + keyword));
             return 0;
         }
-        config.getKeywords().add(keyword);
         config.saveToDisk();
         source.sendFeedback(Component.literal("§a已添加关键词：" + keyword));
         return 1;
     }
 
-    /** /chatblocker remove <关键词>：移除关键词并立即写盘 */
+    /** /chatblocker remove <关键词>：移除关键词并立即写盘（忽略大小写） */
     private static int executeRemove(CommandContext<FabricClientCommandSource> context) {
         String keyword = StringArgumentType.getString(context, "keyword").trim();
         FabricClientCommandSource source = context.getSource();
         ChatBlockConfig config = ChatBlockConfig.INSTANCE;
 
-        if (!config.getKeywords().remove(keyword)) {
+        if (!config.removeKeyword(keyword)) {
             source.sendFeedback(Component.literal("§e关键词不存在：" + keyword));
             return 0;
         }

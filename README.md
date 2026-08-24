@@ -15,7 +15,7 @@ Minecraft 1.21.8 / Fabric 纯客户端聊天关键词屏蔽 Mod：**别人**发�
 ## 安装
 
 1. 安装 [Fabric Loader](https://fabricmc.net/use/)（Minecraft 1.21.8，Java 21+）
-2. 将 `chatblocker-1.0.2.jar` 放入 `.minecraft/mods/`
+2. 将 `chatblocker-1.0.3.jar` 放入 `.minecraft/mods/`
 3. 前置依赖：
    - [Fabric API](https://modrinth.com/mod/fabric-api)（0.136.1+1.21.8）
    - [YetAnotherConfigLib (YACL)](https://modrinth.com/mod/yacl)（3.8.x）
@@ -54,7 +54,7 @@ Minecraft 1.21.8 / Fabric 纯客户端聊天关键词屏蔽 Mod：**别人**发�
 .\gradlew.bat build
 ```
 
-产物位于 `build/libs/chatblocker-1.0.2.jar`（需 JDK 21+）。
+产物位于 `build/libs/chatblocker-1.0.3.jar`（需 JDK 21+）。
 
 ## 发布流程
 
