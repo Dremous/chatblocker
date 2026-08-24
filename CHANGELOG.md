@@ -2,6 +2,10 @@
 
 本项目遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
+## 1.0.4+26.1.2
+
+- 更新 mod 图标
+
 ## 1.0.3+26.1.2
 
 - 适配 Minecraft 26.1.2（Fabric API 0.155.2+26.1.2、YACL 3.9.2+26.1-fabric、ModMenu 18.0.0）
