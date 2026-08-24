@@ -51,8 +51,12 @@ jobs:
         # -Pversion 以标签版本覆盖 gradle.properties，保证产物版本与标签一致
         run: ./gradlew build -Pversion="${{ env.VERSION }}"
 
-      - name: 发布到 Modrinth 与 CurseForge
-        run: ./gradlew modrinth publishCurseForge -Pversion="${{ env.VERSION }}"
+      - name: 发布到 Modrinth
+        run: ./gradlew modrinth -Pversion="${{ env.VERSION }}"
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+
+      - name: 发布到 CurseForge
+        run: ./gradlew publishCurseForge -Pversion="${{ env.VERSION }}"
+        env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}

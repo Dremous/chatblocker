@@ -110,6 +110,8 @@ modrinth {
 	loaders = ["fabric"]
 	// 更新日志由 CI 从 CHANGELOG.md 提取并注入环境变量
 	changelog = System.getenv("CHANGELOG_CONTENT") ?: "更新内容见 CHANGELOG.md"
+	// 版本已存在时不中断构建（重跑发布时 CurseForge 仍可继续上传）
+	failSilently = true
 	dependencies {
 		required.project "fabric-api"
 		required.project "yacl"
