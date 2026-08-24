@@ -112,6 +112,12 @@ modrinth {
 	changelog = System.getenv("CHANGELOG_CONTENT") ?: "更新内容见 CHANGELOG.md"
 	// 版本已存在时不中断构建（重跑发布时 CurseForge 仍可继续上传）
 	failSilently = true
+	// 项目描述从 MODRINTH_DESCRIPTION.md 同步（modrinthSyncBody 任务）。
+	// 该文件被 .gitignore 排除、仅存于本机，CI 中不存在时跳过配置
+	def descriptionFile = rootProject.file("MODRINTH_DESCRIPTION.md")
+	if (descriptionFile.exists()) {
+		syncBodyFrom = descriptionFile.text
+	}
 	dependencies {
 		required.project "fabric-api"
 		required.project "yacl"
