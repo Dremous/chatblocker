@@ -56,6 +56,16 @@ Minecraft 1.21.8 / Fabric 纯客户端聊天关键词屏蔽 Mod：**别人**发�
 
 产物位于 `build/libs/chatblocker-1.0.2.jar`（需 JDK 21+）。
 
+## 发布流程
+
+1. 更新 `gradle.properties` 中的 `version`，并在 `CHANGELOG.md` 顶部新增对应版本段落
+2. 提交后推送标签触发 GitHub Actions 自动发布：
+   ```powershell
+   git tag v1.0.3
+   git push origin v1.0.3
+   ```
+3. CI 自动构建并上传到 [Modrinth](https://modrinth.com/mod/chatblocker_) 与 CurseForge（需在仓库 Settings → Secrets 配置 `MODRINTH_TOKEN` 与 `CURSEFORGE_TOKEN`）
+
 ## 许可证
 
 [MIT](LICENSE)

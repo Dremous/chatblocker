@@ -1,0 +1,57 @@
+name: 自动发布
+
+# 推送 v* 标签时触发（如 v1.0.3），自动构建并发布到 Modrinth 与 CurseForge
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: 设置 Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: 提取版本号与更新日志
+        run: |
+          # 去掉标签前缀 v，得到语义化版本号
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          # 从 CHANGELOG.md 提取对应版本段落（## 1.0.3 到下一个 ## 之间）
+          CHANGELOG=$(awk -v ver="$VERSION" '
+            $0 ~ "^## " {
+              if (found) exit
+              if ($0 == "## " ver) found = 1
+              next
+            }
+            found { print }
+          ' CHANGELOG.md)
+          if [ -z "$CHANGELOG" ]; then CHANGELOG="更新内容见 CHANGELOG.md"; fi
+          {
+            echo "CHANGELOG_CONTENT<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+      - name: 构建与测试
+        # -Pversion 以标签版本覆盖 gradle.properties，保证产物版本与标签一致
+        run: ./gradlew build -Pversion="${{ env.VERSION }}"
+
+      - name: 发布到 Modrinth 与 CurseForge
+        run: ./gradlew modrinth publishCurseForge -Pversion="${{ env.VERSION }}"
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}

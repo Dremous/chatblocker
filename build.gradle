@@ -1,6 +1,8 @@
 plugins {
 	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 	id 'maven-publish'
+	id 'com.modrinth.minotaur' version "${minotaur_version}"
+	id 'net.darkhax.curseforgegradle' version "${curseforgegradle_version}"
 }
 
 repositories {
@@ -94,4 +96,42 @@ publishing {
 	repositories {
 		// 发布用仓库留空，本项目仅本地构建
 	}
+}
+
+// Modrinth 自动发布（Minotaur 插件，任务 modrinth）
+modrinth {
+	// Token 取自环境变量 MODRINTH_TOKEN（CI 中由 GitHub Secrets 注入）
+	token = System.getenv("MODRINTH_TOKEN")
+	projectId = project.modrinth_project_id
+	versionNumber = project.version
+	versionType = "release"
+	uploadFile = remapJar
+	gameVersions = project.publish_game_versions.split(",").toList()
+	loaders = ["fabric"]
+	// 更新日志由 CI 从 CHANGELOG.md 提取并注入环境变量
+	changelog = System.getenv("CHANGELOG_CONTENT") ?: "更新内容见 CHANGELOG.md"
+	dependencies {
+		required.project "fabric-api"
+		required.project "yacl"
+		optional.project "modmenu"
+	}
+}
+
+// CurseForge 自动发布（CurseForgeGradle 插件，任务 publishCurseForge）
+task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+	// Token 取自环境变量 CURSEFORGE_TOKEN（CI 中由 GitHub Secrets 注入）
+	apiToken = System.getenv("CURSEFORGE_TOKEN")
+	group = "publishing"
+
+	def mainFile = upload(project.curseforge_project_id, remapJar)
+	mainFile.releaseType = "release"
+	mainFile.changelog = System.getenv("CHANGELOG_CONTENT") ?: "更新内容见 CHANGELOG.md"
+	mainFile.changelogType = "markdown"
+	mainFile.displayName = "ChatBlocker ${project.version}"
+	// 纯客户端 Mod，仅标记 Client 环境（CurseForge 2026-07 起强制要求环境标签）
+	mainFile.addEnvironment("Client")
+	mainFile.addModLoader("Fabric")
+	project.publish_game_versions.split(",").each { mainFile.addGameVersion(it) }
+	mainFile.addRequirement("fabric-api", "yacl")
+	mainFile.addOptional("modmenu")
 }
