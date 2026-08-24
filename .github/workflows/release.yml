@@ -7,7 +7,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   publish:
@@ -50,6 +50,13 @@ jobs:
       - name: 构建与测试
         # -Pversion 以标签版本覆盖 gradle.properties，保证产物版本与标签一致
         run: ./gradlew build -Pversion="${{ env.VERSION }}"
+
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ env.VERSION }}
+          body: ${{ env.CHANGELOG_CONTENT }}
+          files: build/libs/chatblocker-${{ env.VERSION }}.jar
 
       - name: 发布到 Modrinth
         run: ./gradlew modrinth -Pversion="${{ env.VERSION }}"
