@@ -2,6 +2,10 @@
 
 本项目遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
+## 1.0.3+1.21.1
+
+- 适配 Minecraft 1.21.1（Fabric API 0.116.5+1.21.1、YACL 3.8.1+1.21.1-fabric、ModMenu 11.0.3）
+
 ## 1.0.3
 
 - 修复：`/chatblocker add` 与 `remove` 改为忽略大小写，与屏蔽匹配语义一致（去重不再区分大小写）
