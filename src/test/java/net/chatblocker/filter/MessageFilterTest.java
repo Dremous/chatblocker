@@ -48,10 +48,22 @@ class MessageFilterTest {
         assertFalse(MessageFilter.shouldBlock("这地图真垃圾", OTHER, SELF, false, KEYWORDS));
     }
 
-    /** 发送者信息缺失时不屏蔽（不误伤系统/插件消息） */
+    /** 匿名消息（离线服务器聊天/系统消息，发送者为 null）命中关键词 → 屏蔽 */
     @Test
-    void allowWhenSenderIdNull() {
-        assertFalse(MessageFilter.shouldBlock("这地图真垃圾", null, SELF, true, KEYWORDS));
+    void blockAnonymousWhenHit() {
+        assertTrue(MessageFilter.shouldBlock("这地图真垃圾", null, SELF, true, KEYWORDS));
+    }
+
+    /** 匿名消息未命中关键词 → 放行 */
+    @Test
+    void allowAnonymousWhenMiss() {
+        assertFalse(MessageFilter.shouldBlock("今天天气不错", null, SELF, true, KEYWORDS));
+    }
+
+    /** 不在游戏中（发送者与本地玩家均缺失）→ 放行 */
+    @Test
+    void allowWhenNotInGame() {
+        assertFalse(MessageFilter.shouldBlock("这地图真垃圾", null, null, true, KEYWORDS));
     }
 
     /** 本地玩家信息缺失时不屏蔽 */

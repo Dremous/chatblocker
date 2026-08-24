@@ -17,7 +17,7 @@ public final class MessageFilter {
      * 判断一条聊天消息是否应被屏蔽（不在本地聊天框显示）。
      *
      * @param messageText 消息文本
-     * @param senderId    发送者 UUID，可为 null（信息缺失时不屏蔽）
+     * @param senderId    发送者 UUID，可为 null（离线服务器聊天与系统消息无发送者信息）
      * @param selfId      本地玩家 UUID，可为 null（不在游戏中时不屏蔽）
      * @param enabled     屏蔽功能是否启用
      * @param keywords    屏蔽关键词集合
@@ -29,15 +29,15 @@ public final class MessageFilter {
         if (!enabled) {
             return false;
         }
-        // 发送者或本地玩家信息缺失时不屏蔽（不误伤系统/插件消息）
-        if (senderId == null || selfId == null) {
+        // 本地玩家信息缺失（不在游戏中）时不屏蔽
+        if (selfId == null) {
             return false;
         }
         // 自己发送的消息豁免，不屏蔽
         if (Objects.equals(senderId, selfId)) {
             return false;
         }
-        // 别人发送的消息命中关键词则屏蔽
+        // 别人的消息或匿名消息（离线服务器/系统消息，senderId 为 null）命中关键词则屏蔽
         return KeywordFilter.containsBlockedKeyword(messageText, keywords);
     }
 }
