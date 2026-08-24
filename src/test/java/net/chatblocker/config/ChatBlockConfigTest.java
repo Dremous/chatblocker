@@ -114,4 +114,34 @@ class ChatBlockConfigTest {
         String json = Files.readString(file);
         assertFalse(json.contains("filePath"));
     }
+
+    /** 新实例 exemptOwnEcho 默认为 true */
+    @Test
+    void exemptOwnEchoDefaultTrue() {
+        // fromDisk 对不存在的文件返回默认配置实例
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(tempDir.resolve("not_exist_exempt.json"));
+        assertTrue(config.isExemptOwnEcho());
+    }
+
+    /** exemptOwnEcho 保存后重新加载，值一致（读写往返） */
+    @Test
+    void exemptOwnEchoRoundTrip() {
+        Path file = tempDir.resolve("exempt.json");
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
+        config.setExemptOwnEcho(false);
+        config.saveToDisk();
+
+        ChatBlockConfig loaded = ChatBlockConfig.fromDisk(file);
+        assertFalse(loaded.isExemptOwnEcho());
+    }
+
+    /** JSON 缺少 exemptOwnEcho 字段时使用默认值 true（兼容旧配置文件） */
+    @Test
+    void defaultExemptOwnEchoWhenFieldMissing() throws Exception {
+        Path file = tempDir.resolve("no_exempt.json");
+        Files.writeString(file, "{\"enabled\": true, \"keywords\": [\"test\"]}");
+
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
+        assertTrue(config.isExemptOwnEcho());
+    }
 }

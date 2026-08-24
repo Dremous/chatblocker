@@ -30,6 +30,9 @@ public final class ChatBlockConfig {
     /** 是否启用屏蔽 */
     private boolean enabled = true;
 
+    /** 是否豁免自己消息的回显（离线服务器消息无发送者信息时按文本匹配豁免） */
+    private boolean exemptOwnEcho = true;
+
     /** 屏蔽关键词列表（原始书写，匹配时忽略大小写） */
     private List<String> keywords = new ArrayList<>();
 
@@ -46,6 +49,14 @@ public final class ChatBlockConfig {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public boolean isExemptOwnEcho() {
+        return exemptOwnEcho;
+    }
+
+    public void setExemptOwnEcho(boolean exemptOwnEcho) {
+        this.exemptOwnEcho = exemptOwnEcho;
     }
 
     /** 返回内部可变列表；修改后需调用 saveToDisk() 持久化 */
@@ -87,6 +98,7 @@ public final class ChatBlockConfig {
                 return false;
             }
             this.enabled = loaded.enabled;
+            this.exemptOwnEcho = loaded.exemptOwnEcho;
             this.setKeywords(loaded.keywords);
             return true;
         } catch (IOException | JsonParseException e) {

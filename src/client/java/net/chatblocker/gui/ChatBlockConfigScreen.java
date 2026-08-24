@@ -34,6 +34,13 @@ public final class ChatBlockConfigScreen {
                                 .binding(true, config::isEnabled, config::setEnabled)
                                 .controller(TickBoxControllerBuilder::create)
                                 .build())
+                        .option(Option.<Boolean>createBuilder()
+                                .name(Component.literal("豁免自己消息的回显"))
+                                .description(OptionDescription.of(
+                                        Component.literal("离线服务器聊天无发送者信息，按文本匹配豁免自己刚发出的消息回显；别人在数秒内发送完全相同文本时可能被误豁免")))
+                                .binding(true, config::isExemptOwnEcho, config::setExemptOwnEcho)
+                                .controller(TickBoxControllerBuilder::create)
+                                .build())
                         .group(ListOption.<String>createBuilder()
                                 .name(Component.literal("屏蔽关键词"))
                                 .description(OptionDescription.of(
