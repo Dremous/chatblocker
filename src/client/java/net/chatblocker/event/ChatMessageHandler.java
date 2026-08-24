@@ -35,7 +35,8 @@ public final class ChatMessageHandler {
                 return true;
             }
             // 离线服务器聊天消息 sender 为 null，此时 senderId 传 null（匿名路径）
-            UUID senderId = sender == null ? null : sender.getId();
+            // 注意：authlib 7 的 GameProfile 是 Record，getId() 已改名为 id()
+            UUID senderId = sender == null ? null : sender.id();
             ChatBlockConfig config = ChatBlockConfig.INSTANCE;
             String text = message.getString();
             // 判定逻辑（屏蔽别人/匿名消息、自己豁免）见 MessageFilter
