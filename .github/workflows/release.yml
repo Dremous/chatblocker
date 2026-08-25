@@ -28,9 +28,12 @@ jobs:
 
       - name: 提取版本号与更新日志
         run: |
-          # 去掉标签前缀 v，得到语义化版本号
+          # 去掉标签前缀 v，得到完整版本号（如 1.0.3+1.21.1）
           VERSION="${GITHUB_REF_NAME#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          # 去掉 + 及之后的游戏版本部分，得到 mod 版本（如 1.0.3）
+          MOD_VERSION="${VERSION%%+*}"
+          echo "MOD_VERSION=$MOD_VERSION" >> "$GITHUB_ENV"
           # 从 CHANGELOG.md 提取对应版本段落（## 1.0.3 到下一个 ## 之间）
           CHANGELOG=$(awk -v ver="$VERSION" '
             $0 ~ "^## " {
@@ -48,8 +51,8 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: 构建与测试
-        # -Pversion 以标签版本覆盖 gradle.properties，保证产物版本与标签一致
-        run: ./gradlew build -Pversion="${{ env.VERSION }}"
+        # -Pmod_version 以标签中的 mod 版本覆盖 gradle.properties，保证产物版本与标签一致
+        run: ./gradlew build -Pmod_version="${{ env.MOD_VERSION }}"
 
       - name: 创建 GitHub Release
         uses: softprops/action-gh-release@v2
@@ -59,11 +62,11 @@ jobs:
           files: build/libs/chatblocker-${{ env.VERSION }}.jar
 
       - name: 发布到 Modrinth
-        run: ./gradlew modrinth -Pversion="${{ env.VERSION }}"
+        run: ./gradlew modrinth -Pmod_version="${{ env.MOD_VERSION }}"
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
 
       - name: 发布到 CurseForge
-        run: ./gradlew publishCurseForge -Pversion="${{ env.VERSION }}"
+        run: ./gradlew publishCurseForge -Pmod_version="${{ env.MOD_VERSION }}"
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
