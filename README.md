@@ -15,7 +15,7 @@ Minecraft 1.21.8 / Fabric 纯客户端聊天关键词屏蔽 Mod：**别人**发�
 ## 安装
 
 1. 安装 [Fabric Loader](https://fabricmc.net/use/)（Minecraft 1.21.8，Java 21+）
-2. 将 `chatblocker-1.0.3.jar` 放入 `.minecraft/mods/`
+2. 将 `chatblocker-1.0.5+1.21.8.jar` 放入 `.minecraft/mods/`
 3. 前置依赖：
    - [Fabric API](https://modrinth.com/mod/fabric-api)（0.136.1+1.21.8）
    - [YetAnotherConfigLib (YACL)](https://modrinth.com/mod/yacl)（3.8.x）
@@ -54,15 +54,15 @@ Minecraft 1.21.8 / Fabric 纯客户端聊天关键词屏蔽 Mod：**别人**发�
 .\gradlew.bat build
 ```
 
-产物位于 `build/libs/chatblocker-1.0.3.jar`（需 JDK 21+）。
+产物位于 `build/libs/chatblocker-1.0.5+1.21.8.jar`（需 JDK 21+）。
 
 ## 发布流程
 
-1. 更新 `gradle.properties` 中的 `version`，并在 `CHANGELOG.md` 顶部新增对应版本段落
+1. 更新 `gradle.properties` 中的 `mod_version`，并在 `CHANGELOG.md` 顶部新增对应版本段落（最终版本号 = mod 版本 + 游戏版本）
 2. 提交后推送标签触发 GitHub Actions 自动发布：
    ```powershell
-   git tag v1.0.3
-   git push origin v1.0.3
+   git tag v1.0.5+1.21.8
+   git push origin v1.0.5+1.21.8
    ```
 3. CI 自动构建并上传到 [Modrinth](https://modrinth.com/mod/chatblocker_) 与 CurseForge（需在仓库 Settings → Secrets 配置 `MODRINTH_TOKEN` 与 `CURSEFORGE_TOKEN`）
 
