@@ -2,6 +2,10 @@
 
 本项目遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
+## 1.0.5+26.2
+
+- 版本号统一为 1.0.5
+
 ## 1.0.3+26.2
 
 - 适配 Minecraft 26.2（Fabric API 0.158.0+26.2、YACL 3.9.6+26.2-fabric、ModMenu 20.0.1）

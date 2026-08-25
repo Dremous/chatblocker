@@ -5,6 +5,9 @@ plugins {
 	id 'net.darkhax.curseforgegradle' version "${curseforgegradle_version}"
 }
 
+// 最终版本号 = mod 版本 + 游戏版本（如 1.0.3+26.2），mod 版本部分定义在 gradle.properties 的 mod_version
+version = "${project.mod_version}+${project.minecraft_version}"
+
 repositories {
 	// ModMenu 仓库
 	maven {
