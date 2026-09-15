@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package net.chatblocker.config;
 
 import org.junit.jupiter.api.Test;

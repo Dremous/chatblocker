@@ -1,5 +1,14 @@
 pluginManagement {
 	repositories {
+		// 阿里云镜像（国内网络加速）
+		maven {
+			name = 'Aliyun Central'
+			url = 'https://maven.aliyun.com/repository/central'
+		}
+		maven {
+			name = 'Aliyun Gradle Plugins'
+			url = 'https://maven.aliyun.com/repository/gradle-plugin'
+		}
 		maven {
 			name = 'Fabric'
 			url = 'https://maven.fabricmc.net/'

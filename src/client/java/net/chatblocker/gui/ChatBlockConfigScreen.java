@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package net.chatblocker.gui;
 
 import dev.isxander.yacl3.api.ConfigCategory;
@@ -24,27 +25,27 @@ public final class ChatBlockConfigScreen {
         ChatBlockConfig config = ChatBlockConfig.INSTANCE;
 
         return YetAnotherConfigLib.createBuilder()
-                .title(Component.literal("ChatBlocker 设置"))
+                .title(Component.translatable("chatblocker.config.title"))
                 .category(ConfigCategory.createBuilder()
-                        .name(Component.literal("屏蔽设置"))
+                        .name(Component.translatable("chatblocker.config.category"))
                         .option(Option.<Boolean>createBuilder()
-                                .name(Component.literal("启用屏蔽"))
+                                .name(Component.translatable("chatblocker.config.enabled"))
                                 .description(OptionDescription.of(
-                                        Component.literal("关闭后不再过滤任何消息。修改立即生效，保存用于持久化")))
+                                        Component.translatable("chatblocker.config.enabled.desc")))
                                 .binding(true, config::isEnabled, config::setEnabled)
                                 .controller(TickBoxControllerBuilder::create)
                                 .build())
                         .option(Option.<Boolean>createBuilder()
-                                .name(Component.literal("豁免自己消息的回显"))
+                                .name(Component.translatable("chatblocker.config.exempt_own_echo"))
                                 .description(OptionDescription.of(
-                                        Component.literal("离线服务器聊天无发送者信息，按文本匹配豁免自己刚发出的消息回显；别人在数秒内发送完全相同文本时可能被误豁免")))
+                                        Component.translatable("chatblocker.config.exempt_own_echo.desc")))
                                 .binding(true, config::isExemptOwnEcho, config::setExemptOwnEcho)
                                 .controller(TickBoxControllerBuilder::create)
                                 .build())
                         .group(ListOption.<String>createBuilder()
-                                .name(Component.literal("屏蔽关键词"))
+                                .name(Component.translatable("chatblocker.config.keywords"))
                                 .description(OptionDescription.of(
-                                        Component.literal("别人发送的消息包含任一关键词时，自己不显示该消息（不区分大小写）")))
+                                        Component.translatable("chatblocker.config.keywords.desc")))
                                 .binding(List.of(), config::getKeywords, config::setKeywords)
                                 .controller(StringControllerBuilder::create)
                                 .initial("")
