@@ -1,0 +1,22 @@
+{
+  "modmenu.descriptionTranslation.chatblocker": "Chat keyword filter: messages from others containing keywords won't be displayed on your client. Your own messages are unaffected. Also covers system messages (server announcements, etc.); offline server echo exemption via text matching (configurable).",
+
+  "chatblocker.command.keyword_empty": "§cKeyword cannot be empty",
+  "chatblocker.command.keyword_exists": "§eKeyword already exists (case-insensitive): %s",
+  "chatblocker.command.keyword_added": "§aKeyword added: %s",
+  "chatblocker.command.keyword_not_found": "§eKeyword not found: %s",
+  "chatblocker.command.keyword_removed": "§aKeyword removed: %s",
+  "chatblocker.command.keyword_list_empty": "No keywords configured",
+  "chatblocker.command.keyword_list": "Keywords (%s): %s",
+  "chatblocker.command.reload_success": "§aConfiguration reloaded",
+  "chatblocker.command.reload_fail": "§cConfiguration file missing or corrupted, kept current settings",
+
+  "chatblocker.config.title": "ChatBlocker Settings",
+  "chatblocker.config.category": "Filter Settings",
+  "chatblocker.config.enabled": "Enable Filtering",
+  "chatblocker.config.enabled.desc": "When disabled, no messages are filtered. Changes take effect immediately; save to persist.",
+  "chatblocker.config.exempt_own_echo": "Exempt Own Message Echo",
+  "chatblocker.config.exempt_own_echo.desc": "For offline server chats without sender info, exempts your own message echo via text matching. May falsely exempt others who send the same text within seconds.",
+  "chatblocker.config.keywords": "Keywords",
+  "chatblocker.config.keywords.desc": "Messages from others containing any keyword will not be displayed (case-insensitive)."
+}

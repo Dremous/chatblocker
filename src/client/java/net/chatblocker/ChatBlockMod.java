@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package net.chatblocker;
 
 import net.chatblocker.command.ChatBlockCommand;
@@ -5,6 +6,8 @@ import net.chatblocker.config.ChatBlockConfig;
 import net.chatblocker.event.ChatMessageHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Mod 客户端入口：加载配置并注册事件监听。 */
 public class ChatBlockMod implements ClientModInitializer {
@@ -12,8 +15,12 @@ public class ChatBlockMod implements ClientModInitializer {
     /** Mod ID */
     public static final String MOD_ID = "chatblocker";
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
     @Override
     public void onInitializeClient() {
+        LOGGER.info("ChatBlocker 启动中...");
+
         // 配置文件位于 .minecraft/config/chatblocker.json
         ChatBlockConfig.INSTANCE.setFilePath(
                 FabricLoader.getInstance().getConfigDir().resolve("chatblocker.json"));
@@ -24,5 +31,7 @@ public class ChatBlockMod implements ClientModInitializer {
 
         // 注册客户端命令
         ChatBlockCommand.register();
+
+        LOGGER.info("ChatBlocker 启动完成");
     }
 }

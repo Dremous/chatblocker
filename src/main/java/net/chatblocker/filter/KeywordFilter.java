@@ -1,12 +1,34 @@
+// SPDX-License-Identifier: MIT
 package net.chatblocker.filter;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 
 /** 聊天关键词过滤器：包含匹配、不区分大小写。纯逻辑，不依赖 Minecraft 类。 */
 public final class KeywordFilter {
 
     private KeywordFilter() {
+    }
+
+    /**
+     * 将关键词集合预转为小写列表，避免匹配时逐个 toLowerCase。
+     *
+     * @param keywords 原始关键词集合
+     * @return 小写关键词列表；keywords 为 null 时返回空列表
+     */
+    public static List<String> preNormalize(Collection<String> keywords) {
+        if (keywords == null) {
+            return List.of();
+        }
+        List<String> normalized = new ArrayList<>(keywords.size());
+        for (String k : keywords) {
+            if (k != null && !k.isBlank()) {
+                normalized.add(k.toLowerCase(Locale.ROOT));
+            }
+        }
+        return normalized;
     }
 
     /**

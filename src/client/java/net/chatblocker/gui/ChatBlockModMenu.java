@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package net.chatblocker.gui;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
