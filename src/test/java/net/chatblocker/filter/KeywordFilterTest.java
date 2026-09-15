@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package net.chatblocker.filter;
 
 import org.junit.jupiter.api.Test;
@@ -5,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -70,5 +72,19 @@ class KeywordFilterTest {
     void ignoreBlankKeywords() {
         assertFalse(KeywordFilter.containsBlockedKeyword("hello world", Arrays.asList("", "   ", null)));
         assertTrue(KeywordFilter.containsBlockedKeyword("hello world", List.of("", "world")));
+    }
+
+    /** preNormalize：转小写、过滤 null 与空白 */
+    @Test
+    void preNormalizeTrimsAndLowercases() {
+        List<String> result = KeywordFilter.preNormalize(Arrays.asList("BadWord", "", null, "   ", "Hello"));
+        assertEquals(List.of("badword", "hello"), result);
+    }
+
+    /** preNormalize：null 输入返回空列表 */
+    @Test
+    void preNormalizeNullInput() {
+        List<String> result = KeywordFilter.preNormalize(null);
+        assertEquals(List.of(), result);
     }
 }

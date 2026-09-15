@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package net.chatblocker.config;
 
 import com.google.gson.Gson;
@@ -13,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -60,9 +62,9 @@ public final class ChatBlockConfig {
         this.exemptOwnEcho = exemptOwnEcho;
     }
 
-    /** 返回内部可变列表；修改后需调用 saveToDisk() 持久化 */
+    /** 返回不可变列表视图；修改需通过 addKeyword/removeKeyword/setKeywords 方法 */
     public List<String> getKeywords() {
-        return keywords;
+        return Collections.unmodifiableList(keywords);
     }
 
     /**
@@ -105,13 +107,16 @@ public final class ChatBlockConfig {
         return false;
     }
 
-    /** 替换关键词列表，自动过滤 null 与空白项 */
+    /** 替换关键词列表，自动 trim 并过滤 null 与空白项 */
     public void setKeywords(List<String> keywords) {
         this.keywords = new ArrayList<>();
         if (keywords != null) {
             for (String keyword : keywords) {
                 if (keyword != null && !keyword.isBlank()) {
-                    this.keywords.add(keyword);
+                    String trimmed = keyword.trim();
+                    if (!trimmed.isEmpty()) {
+                        this.keywords.add(trimmed);
+                    }
                 }
             }
         }

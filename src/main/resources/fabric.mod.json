@@ -3,11 +3,15 @@
 	"id": "chatblocker",
 	"version": "${version}",
 	"name": "ChatBlocker",
-	"description": "聊天关键词屏蔽：别人发送的含关键词消息自己不显示，自己发送的消息不受影响。同时覆盖服务器公告等系统消息；离线服务器按文本匹配豁免自己消息的回显（可在配置中关闭）。",
+	"description": "Chat keyword filter: hides messages from others that contain blocked keywords on your client. Your own messages are unaffected. Also covers system messages (server announcements, etc.); offline server echo exemption via text matching (configurable).",
 	"authors": [
 		"Dremous"
 	],
-	"contact": {},
+	"contact": {
+		"homepage": "https://modrinth.com/mod/chatblocker_",
+		"sources": "https://github.com/Dremous/chatblocker",
+		"issues": "https://github.com/Dremous/chatblocker/issues"
+	},
 	"license": "MIT",
 	"icon": "assets/chatblocker/icon.png",
 	"environment": "client",

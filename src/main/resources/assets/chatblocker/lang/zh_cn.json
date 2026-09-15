@@ -1,0 +1,22 @@
+{
+  "modmenu.descriptionTranslation.chatblocker": "聊天关键词屏蔽：别人发送的含关键词消息自己不显示，自己发送的消息不受影响。同时覆盖服务器公告等系统消息；离线服务器按文本匹配豁免自己消息的回显（可配置关闭）。",
+
+  "chatblocker.command.keyword_empty": "§c关键词不能为空",
+  "chatblocker.command.keyword_exists": "§e关键词已存在（不区分大小写）：%s",
+  "chatblocker.command.keyword_added": "§a已添加关键词：%s",
+  "chatblocker.command.keyword_not_found": "§e关键词不存在：%s",
+  "chatblocker.command.keyword_removed": "§a已移除关键词：%s",
+  "chatblocker.command.keyword_list_empty": "当前没有屏蔽关键词",
+  "chatblocker.command.keyword_list": "当前屏蔽关键词（%s 个）：%s",
+  "chatblocker.command.reload_success": "§a已重新加载配置",
+  "chatblocker.command.reload_fail": "§c配置文件不存在或损坏，已保留当前配置",
+
+  "chatblocker.config.title": "ChatBlocker 设置",
+  "chatblocker.config.category": "屏蔽设置",
+  "chatblocker.config.enabled": "启用屏蔽",
+  "chatblocker.config.enabled.desc": "关闭后不再过滤任何消息。修改立即生效，保存用于持久化",
+  "chatblocker.config.exempt_own_echo": "豁免自己消息的回显",
+  "chatblocker.config.exempt_own_echo.desc": "离线服务器聊天无发送者信息，按文本匹配豁免自己刚发出的消息回显；别人在数秒内发送完全相同文本时可能被误豁免",
+  "chatblocker.config.keywords": "屏蔽关键词",
+  "chatblocker.config.keywords.desc": "别人发送的消息包含任一关键词时，自己不显示该消息（不区分大小写）"
+}

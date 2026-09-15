@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package net.chatblocker.event;
 
 import java.util.UUID;
@@ -51,6 +52,10 @@ public final class ChatMessageHandler {
 
         // 系统消息：服务器公告、插件消息、/say 等，无发送者信息，命中关键词即屏蔽
         ClientReceiveMessageEvents.ALLOW_GAME.register((message, overlay) -> {
+            // action bar（覆盖层）消息放行，仅过滤聊天栏系统消息
+            if (overlay) {
+                return true;
+            }
             Minecraft client = Minecraft.getInstance();
             // 不在游戏中时放行
             if (client.player == null) {
