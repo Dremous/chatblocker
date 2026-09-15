@@ -2,6 +2,18 @@
 
 本项目遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
+## 1.1.0+1.21.8
+
+- 新增：语言文件支持（en_us / zh_cn），ModMenu 可显示对应翻译
+- 新增：GitHub Actions 常规构建校验 CI（PR/push）
+- 新增：SPDX 许可证文件头
+- 修复：`setKeywords` 未 trim 首尾空格，`getKeywords` 暴露可变内部列表改为不可变视图
+- 修复：action bar 消息不再被误屏蔽
+- 优化：Gradle 构建配置（toolchain、archivesName、JVM 内存 2G、阿里云 Maven 镜像）
+- 优化：KeywordFilter 新增 `preNormalize` 预缓存方法
+- 优化：入口类添加启动日志
+- 文档：README 强化包含匹配说明，contact 补全
+
 ## 1.0.5+1.21.8
 
 - 更新 mod 图标

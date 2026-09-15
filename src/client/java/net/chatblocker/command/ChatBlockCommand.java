@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 package net.chatblocker.command;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -39,15 +40,15 @@ public final class ChatBlockCommand {
         ChatBlockConfig config = ChatBlockConfig.INSTANCE;
 
         if (keyword.isEmpty()) {
-            source.sendFeedback(Component.literal("§c关键词不能为空"));
+            source.sendFeedback(Component.translatable("chatblocker.command.keyword_empty"));
             return 0;
         }
         if (!config.addKeyword(keyword)) {
-            source.sendFeedback(Component.literal("§e关键词已存在（不区分大小写）：" + keyword));
+            source.sendFeedback(Component.translatable("chatblocker.command.keyword_exists", keyword));
             return 0;
         }
         config.saveToDisk();
-        source.sendFeedback(Component.literal("§a已添加关键词：" + keyword));
+        source.sendFeedback(Component.translatable("chatblocker.command.keyword_added", keyword));
         return 1;
     }
 
@@ -58,11 +59,11 @@ public final class ChatBlockCommand {
         ChatBlockConfig config = ChatBlockConfig.INSTANCE;
 
         if (!config.removeKeyword(keyword)) {
-            source.sendFeedback(Component.literal("§e关键词不存在：" + keyword));
+            source.sendFeedback(Component.translatable("chatblocker.command.keyword_not_found", keyword));
             return 0;
         }
         config.saveToDisk();
-        source.sendFeedback(Component.literal("§a已移除关键词：" + keyword));
+        source.sendFeedback(Component.translatable("chatblocker.command.keyword_removed", keyword));
         return 1;
     }
 
@@ -72,10 +73,10 @@ public final class ChatBlockCommand {
         List<String> keywords = ChatBlockConfig.INSTANCE.getKeywords();
 
         if (keywords.isEmpty()) {
-            source.sendFeedback(Component.literal("当前没有屏蔽关键词"));
+            source.sendFeedback(Component.translatable("chatblocker.command.keyword_list_empty"));
         } else {
-            source.sendFeedback(Component.literal(
-                    "当前屏蔽关键词（" + keywords.size() + " 个）：" + String.join("、", keywords)));
+            source.sendFeedback(Component.translatable(
+                    "chatblocker.command.keyword_list", keywords.size(), String.join("、", keywords)));
         }
         return 1;
     }
@@ -86,10 +87,10 @@ public final class ChatBlockCommand {
         boolean success = ChatBlockConfig.INSTANCE.loadFromDisk();
 
         if (success) {
-            source.sendFeedback(Component.literal("§a已重新加载配置"));
+            source.sendFeedback(Component.translatable("chatblocker.command.reload_success"));
             return 1;
         }
-        source.sendFeedback(Component.literal("§c配置文件不存在或损坏，已保留当前配置"));
+        source.sendFeedback(Component.translatable("chatblocker.command.reload_fail"));
         return 0;
     }
 }
