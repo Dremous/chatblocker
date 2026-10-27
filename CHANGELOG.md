@@ -2,6 +2,12 @@
 
 本项目遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
+## 1.1.0+26.3
+
+- 适配 Minecraft 26.3（Fabric API 0.165.0+26.3、YACL 3.9.7+26.3-fabric、ModMenu 21.0.0、Fabric Loader 0.20.1）
+- 构建：Gradle wrapper 升级至 9.8.2，Fabric Loom 升级至 1.19.3
+- CI：构建校验改为覆盖所有分支（版本分支也纳入校验，tag push 不重复触发）
+
 ## 1.1.0+26.2
 
 - 新增：语言文件支持（en_us / zh_cn），ModMenu 可显示对应翻译

@@ -1,15 +1,12 @@
 name: 构建校验
 
-# 在 PR 和 push 时运行常规构建与测试，确保代码可编译且测试通过
+# 在 PR 和任意分支 push 时运行常规构建与测试，确保代码可编译且测试通过
+# （版本分支如 26.2 / 26.3 也纳入校验；用 '**' 而非留空，避免 tag push 触发本工作流）
 on:
   pull_request:
-    branches:
-      - main
-      - master
   push:
     branches:
-      - main
-      - master
+      - '**'
 
 permissions:
   contents: read
