@@ -21,17 +21,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 安装 JDK 25
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           # Minecraft 26.3 要求 JVM 25（构建与编译目标均为 Java 25）
           java-version: 25
 
       - name: 设置 Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: 校验标签与 CHANGELOG 并提取更新日志
         run: |
@@ -92,7 +92,7 @@ jobs:
 
       - name: 创建 GitHub Release
         # 放在两个平台上传之后：上传失败则不创建 Release，避免用户下载到未同步的版本
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: v${{ env.VERSION }}
           body: ${{ env.CHANGELOG_CONTENT }}
