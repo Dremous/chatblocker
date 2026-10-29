@@ -1,6 +1,8 @@
 name: 自动发布
 
-# 推送 v* 标签时触发（如 v1.0.3），自动构建并发布到 Modrinth 与 CurseForge
+# 推送 v* 标签时触发（如 v1.1.1+26.3），构建并发布到 Modrinth、CurseForge 与 GitHub Release。
+# 顺序刻意安排为：构建 → 两个平台上传 → GitHub Release，
+# 任一上传失败都不会留下「Release 已创建、文件却没上传」的半成品状态。
 on:
   push:
     tags:
@@ -8,6 +10,11 @@ on:
 
 permissions:
   contents: write
+
+# 同一个标签重复触发时只保留最新一次，避免两个任务并发上传同一版本
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -20,30 +27,47 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          # Minecraft 26.1 要求 JVM 25（构建与编译目标均为 Java 25）
+          # Minecraft 26.3 要求 JVM 25（构建与编译目标均为 Java 25）
           java-version: 25
 
       - name: 设置 Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: 提取版本号与更新日志
+      - name: 校验标签与 CHANGELOG 并提取更新日志
         run: |
-          # 去掉标签前缀 v，得到完整版本号（如 1.0.3+26.2）
+          set -euo pipefail
+          # 去掉标签前缀 v，得到完整版本号（如 1.1.1+26.3）
           VERSION="${GITHUB_REF_NAME#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          # 去掉 + 及之后的游戏版本部分，得到 mod 版本（如 1.0.3）
+          # 去掉 + 及之后的游戏版本部分，得到 mod 版本（如 1.1.1）
           MOD_VERSION="${VERSION%%+*}"
           echo "MOD_VERSION=$MOD_VERSION" >> "$GITHUB_ENV"
-          # 从 CHANGELOG.md 提取对应版本段落（## 1.0.3 到下一个 ## 之间）
+
+          # 版本一致性校验：标签必须与 gradle.properties 中的 mod 版本 + 游戏版本完全一致，
+          # 否则产物文件名、Modrinth 版本号与标签会对不上，导致发布出错误版本。
+          FILE_MOD_VERSION="$(grep -E '^mod_version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
+          FILE_MC_VERSION="$(grep -E '^minecraft_version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
+          EXPECTED="${FILE_MOD_VERSION}+${FILE_MC_VERSION}"
+          if [ "$VERSION" != "$EXPECTED" ]; then
+            echo "::error::标签版本 ${VERSION} 与 gradle.properties 中的 ${EXPECTED} 不一致，请先同步版本号"
+            exit 1
+          fi
+
+          # 从 CHANGELOG.md 精确匹配 "## <完整版本号>" 段落（到下一个 ## 之前）。
+          # 缺失即失败：没有更新日志的发布不应该悄悄发生。
           CHANGELOG=$(awk -v ver="$VERSION" '
-            $0 ~ "^## " {
+            { sub(/\r$/, "") }
+            /^## / {
               if (found) exit
-              if ($0 == "## " ver) found = 1
+              if ($0 == "## " ver) { found = 1; next }
               next
             }
             found { print }
           ' CHANGELOG.md)
-          if [ -z "$CHANGELOG" ]; then CHANGELOG="更新内容见 CHANGELOG.md"; fi
+          if [ -z "$CHANGELOG" ]; then
+            echo "::error::CHANGELOG.md 中找不到版本段落 ## ${VERSION}，请在发布前补全"
+            exit 1
+          fi
           {
             echo "CHANGELOG_CONTENT<<EOF"
             echo "$CHANGELOG"
@@ -51,22 +75,27 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: 构建与测试
-        # -Pmod_version 以标签中的 mod 版本覆盖 gradle.properties，保证产物版本与标签一致
+        # -Pmod_version 显式覆盖，保证产物版本与标签严格一致（前面已校验二者相同）
         run: ./gradlew build -Pmod_version="${{ env.MOD_VERSION }}"
-
-      - name: 创建 GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: v${{ env.VERSION }}
-          body: ${{ env.CHANGELOG_CONTENT }}
-          files: build/libs/chatblocker-${{ env.VERSION }}.jar
 
       - name: 发布到 Modrinth
         run: ./gradlew modrinth -Pmod_version="${{ env.MOD_VERSION }}"
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CHANGELOG_CONTENT: ${{ env.CHANGELOG_CONTENT }}
 
       - name: 发布到 CurseForge
         run: ./gradlew publishCurseForge -Pmod_version="${{ env.MOD_VERSION }}"
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          CHANGELOG_CONTENT: ${{ env.CHANGELOG_CONTENT }}
+
+      - name: 创建 GitHub Release
+        # 放在两个平台上传之后：上传失败则不创建 Release，避免用户下载到未同步的版本
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ env.VERSION }}
+          body: ${{ env.CHANGELOG_CONTENT }}
+          files: build/libs/chatblocker-${{ env.VERSION }}.jar
+          # 产物不存在时直接失败，而不是建一个没有附件的 Release
+          fail_on_unmatched_files: true

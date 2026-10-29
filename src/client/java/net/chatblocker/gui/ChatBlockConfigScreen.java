@@ -9,6 +9,7 @@ import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
 import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder;
 import net.chatblocker.config.ChatBlockConfig;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -51,8 +52,14 @@ public final class ChatBlockConfigScreen {
                                 .initial("")
                                 .build())
                         .build())
-                // 点击保存按钮时写盘
-                .save(config::saveToDisk)
+                // 点击保存按钮时写盘；失败时在聊天栏提示，避免用户以为已持久化
+                .save(() -> {
+                    if (!config.saveToDisk()) {
+                        Minecraft.getInstance().gui.hud.getChat()
+                                .addClientSystemMessage(
+                                        Component.translatable("chatblocker.command.save_failed"));
+                    }
+                })
                 .build()
                 .generateScreen(parent);
     }

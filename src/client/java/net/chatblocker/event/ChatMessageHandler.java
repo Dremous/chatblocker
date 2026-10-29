@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 package net.chatblocker.event;
 
+import java.util.Locale;
 import java.util.UUID;
 import net.chatblocker.config.ChatBlockConfig;
-import net.chatblocker.filter.MessageFilter;
+import net.chatblocker.filter.InboundMessageFilter;
 import net.chatblocker.filter.OwnEchoTracker;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
 
 /**
@@ -27,6 +29,10 @@ public final class ChatMessageHandler {
     public static void register() {
         // 记录自己发出的聊天原文，用于离线服务器回显豁免
         ClientSendMessageEvents.CHAT.register(OWN_ECHO_TRACKER::record);
+        // 记录会产生聊天回显的命令参数（/say、/msg 等），避免自己的回显被自己屏蔽
+        ClientSendMessageEvents.COMMAND.register(ChatMessageHandler::recordCommandEcho);
+        // 断开连接时清空记录，避免换服后旧回显误豁免
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> OWN_ECHO_TRACKER.clear());
 
         // 玩家聊天消息：发送者为其他玩家或 null（离线服务器无签名聊天）时按关键词判定
         ClientReceiveMessageEvents.ALLOW_CHAT.register((message, signedMessage, sender, params, receptionTimestamp) -> {
@@ -39,15 +45,10 @@ public final class ChatMessageHandler {
             // 注意：authlib 7 的 GameProfile 是 Record，getId() 已改名为 id()
             UUID senderId = sender == null ? null : sender.id();
             ChatBlockConfig config = ChatBlockConfig.INSTANCE;
-            String text = message.getString();
-            // 判定逻辑（屏蔽别人/匿名消息、自己豁免）见 MessageFilter
-            boolean block = MessageFilter.shouldBlock(text, senderId,
-                    client.player.getUUID(), config.isEnabled(), config.getKeywords());
-            // 匿名消息命中关键词时，若为自己消息的回显则豁免（离线服务器场景）
-            if (block && senderId == null && config.isExemptOwnEcho() && OWN_ECHO_TRACKER.matches(text)) {
-                return true;
-            }
-            return !block;
+            // 判定逻辑（屏蔽别人/匿名消息、自己豁免）见 InboundMessageFilter
+            return !InboundMessageFilter.shouldBlock(message.getString(), senderId,
+                    client.player.getUUID(), config.isEnabled(), config.getKeywords(),
+                    config.isExemptOwnEcho(), OWN_ECHO_TRACKER);
         });
 
         // 系统消息：服务器公告、插件消息、/say 等，无发送者信息，命中关键词即屏蔽
@@ -62,14 +63,45 @@ public final class ChatMessageHandler {
                 return true;
             }
             ChatBlockConfig config = ChatBlockConfig.INSTANCE;
-            String text = message.getString();
-            boolean block = MessageFilter.shouldBlock(text, null,
-                    client.player.getUUID(), config.isEnabled(), config.getKeywords());
-            // 系统消息命中关键词时，若为自己消息的回显则豁免（部分服务器将聊天转为系统消息回显）
-            if (block && config.isExemptOwnEcho() && OWN_ECHO_TRACKER.matches(text)) {
-                return true;
-            }
-            return !block;
+            return !InboundMessageFilter.shouldBlock(message.getString(), null,
+                    client.player.getUUID(), config.isEnabled(), config.getKeywords(),
+                    config.isExemptOwnEcho(), OWN_ECHO_TRACKER);
         });
+    }
+
+    /**
+     * 记录会产生聊天回显的命令参数。
+     * 只记录消息正文，不记录整条命令，避免 "/gamemode creative" 之类造成大面积误豁免。
+     *
+     * @param command 命令文本（不含前导斜杠）
+     */
+    private static void recordCommandEcho(String command) {
+        if (command == null || command.isBlank()) {
+            return;
+        }
+        String trimmed = command.trim();
+        int firstSpace = trimmed.indexOf(' ');
+        if (firstSpace <= 0) {
+            return;
+        }
+        String head = trimmed.substring(0, firstSpace).toLowerCase(Locale.ROOT);
+        String rest = trimmed.substring(firstSpace + 1).trim();
+        if (rest.isEmpty()) {
+            return;
+        }
+        switch (head) {
+            // 整段参数就是消息正文
+            case "say", "me", "r" -> OWN_ECHO_TRACKER.record(rest);
+            // 第一个参数是目标玩家，其余才是消息正文
+            case "msg", "tell", "w" -> {
+                int secondSpace = rest.indexOf(' ');
+                if (secondSpace > 0) {
+                    OWN_ECHO_TRACKER.record(rest.substring(secondSpace + 1));
+                }
+            }
+            default -> {
+                // 其他命令不产生聊天回显，无需记录
+            }
+        }
     }
 }

@@ -1,13 +1,16 @@
 pluginManagement {
 	repositories {
-		// 阿里云镜像（国内网络加速）
-		maven {
-			name = 'Aliyun Central'
-			url = 'https://maven.aliyun.com/repository/central'
-		}
-		maven {
-			name = 'Aliyun Gradle Plugins'
-			url = 'https://maven.aliyun.com/repository/gradle-plugin'
+		// 阿里云镜像仅供本地国内网络加速：GitHub Actions 上访问阿里云偶发超时、索引陈旧，
+		// 会导致插件解析失败，因此 CI 环境（CI=true）只走官方源。
+		if (!System.getenv('CI')) {
+			maven {
+				name = 'Aliyun Central'
+				url = 'https://maven.aliyun.com/repository/central'
+			}
+			maven {
+				name = 'Aliyun Gradle Plugins'
+				url = 'https://maven.aliyun.com/repository/gradle-plugin'
+			}
 		}
 		maven {
 			name = 'Fabric'

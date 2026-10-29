@@ -1,6 +1,5 @@
 plugins {
 	id 'net.fabricmc.fabric-loom' version "${loom_version}"
-	id 'maven-publish'
 	id 'com.modrinth.minotaur' version "${minotaur_version}"
 	id 'net.darkhax.curseforgegradle' version "${curseforgegradle_version}"
 }
@@ -9,11 +8,23 @@ plugins {
 version = "${project.mod_version}+${project.minecraft_version}"
 base.archivesName = "chatblocker"
 
+// 发布时标记的游戏版本（支持逗号分隔多版本，自动 trim 并忽略空项）。
+// 属性留空时回退为当前 minecraft_version，避免新增版本时漏改导致发布到错误的游戏版本。
+def publishGameVersions = project.publish_game_versions.split(",")
+		.collect { it.trim() }
+		.findAll { !it.isEmpty() }
+if (publishGameVersions.isEmpty()) {
+	publishGameVersions = [project.minecraft_version]
+}
+
 repositories {
-	// 阿里云 Maven Central 镜像（国内网络加速下载）
-	maven {
-		name = 'Aliyun Central'
-		url = 'https://maven.aliyun.com/repository/central'
+	// 阿里云 Maven Central 镜像仅供本地国内网络加速；CI 环境只走官方源，
+	// 与 settings.gradle 的 pluginManagement 保持一致，避免远端索引超时。
+	if (!System.getenv('CI')) {
+		maven {
+			name = 'Aliyun Central'
+			url = 'https://maven.aliyun.com/repository/central'
+		}
 	}
 	mavenCentral()
 	// ModMenu 仓库
@@ -95,19 +106,6 @@ jar {
 	}
 }
 
-// 配置 Maven 发布
-publishing {
-	publications {
-		create("mavenJava", MavenPublication) {
-			from components.java
-		}
-	}
-
-	repositories {
-		// 发布用仓库留空，本项目仅本地构建
-	}
-}
-
 // ===== 发布任务（CI 自动发布到 Modrinth + CurseForge） =====
 // Modrinth 自动发布（Minotaur 插件，任务 modrinth）
 modrinth {
@@ -117,12 +115,12 @@ modrinth {
 	versionNumber = project.version
 	versionType = "release"
 	uploadFile = jar
-	gameVersions = project.publish_game_versions.split(",").toList()
+	gameVersions = publishGameVersions
 	loaders = ["fabric"]
 	// 更新日志由 CI 从 CHANGELOG.md 提取并注入环境变量
 	changelog = System.getenv("CHANGELOG_CONTENT") ?: "更新内容见 CHANGELOG.md"
-	// 版本已存在时不中断构建（重跑发布时 CurseForge 仍可继续上传）
-	failSilently = true
+	// 注意：不要开启 failSilently——它会把 401、非法版本号等真实错误一起吞掉，
+	// 结果是 CI 全绿但 Modrinth 上没有该版本。版本重复时应让构建失败并人工判断。
 	// 项目描述从 MODRINTH_DESCRIPTION.md 同步（modrinthSyncBody 任务）。
 	// 该文件被 .gitignore 排除、仅存于本机，CI 中不存在时跳过配置
 	def descriptionFile = rootProject.file("MODRINTH_DESCRIPTION.md")
@@ -137,7 +135,7 @@ modrinth {
 }
 
 // CurseForge 自动发布（CurseForgeGradle 插件，任务 publishCurseForge）
-task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+tasks.register("publishCurseForge", net.darkhax.curseforgegradle.TaskPublishCurseForge) {
 	// Token 取自环境变量 CURSEFORGE_TOKEN（CI 中由 GitHub Secrets 注入）
 	apiToken = System.getenv("CURSEFORGE_TOKEN")
 	group = "publishing"
@@ -150,7 +148,7 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
 	// 纯客户端 Mod，仅标记 Client 环境（CurseForge 2026-07 起强制要求环境标签）
 	mainFile.addEnvironment("Client")
 	mainFile.addModLoader("Fabric")
-	project.publish_game_versions.split(",").each { mainFile.addGameVersion(it) }
+	publishGameVersions.each { mainFile.addGameVersion(it) }
 	mainFile.addRequirement("fabric-api", "yacl")
 	mainFile.addOptional("modmenu")
 }

@@ -1,15 +1,25 @@
 name: 构建校验
 
-# 在 PR 和任意分支 push 时运行常规构建与测试，确保代码可编译且测试通过
-# （版本分支如 26.2 / 26.3 也纳入校验；用 '**' 而非留空，避免 tag push 触发本工作流）
+# 在 PR 和任意分支 push 时运行常规构建与测试，确保代码可编译且测试通过。
+# （版本分支如 26.3 也纳入校验；用 '**' 而非留空，避免 tag push 触发本工作流）
+#
+# pull_request 只订阅 opened / reopened / ready_for_review：
+# 同一仓库的分支 push 已由 push 事件覆盖，若再订阅 synchronize 会对每个提交重复跑一遍。
+# 注意：若将来接受 fork 提交的 PR，需补回 synchronize（fork 的 push 不会触发本仓库工作流）。
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
   push:
     branches:
       - '**'
 
 permissions:
   contents: read
+
+# 同一个 head SHA 只保留最新一次运行：连续推送时取消旧任务，节省分钟数
+concurrency:
+  group: build-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   build:

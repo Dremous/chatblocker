@@ -191,4 +191,128 @@ class ChatBlockConfigTest {
         assertFalse(config.removeKeyword("badword"));
         assertEquals(List.of("垃圾"), config.getKeywords());
     }
+
+    /** 保存成功返回 true，并自动创建不存在的父目录 */
+    @Test
+    void saveReturnsTrueAndCreatesParentDirectories() {
+        Path file = tempDir.resolve("nested/dir/chatblocker.json");
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
+        config.setKeywords(List.of("垃圾"));
+
+        assertTrue(config.saveToDisk());
+        assertTrue(Files.exists(file));
+    }
+
+    /** 写入失败时返回 false 且不抛异常（父路径是普通文件） */
+    @Test
+    void saveReturnsFalseWhenWriteFails() throws Exception {
+        Path blocker = tempDir.resolve("blocker");
+        Files.writeString(blocker, "占位文件");
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(blocker.resolve("config.json"));
+
+        assertFalse(config.saveToDisk());
+    }
+
+    /** 保存后不残留临时文件 */
+    @Test
+    void saveLeavesNoTemporaryFile() throws Exception {
+        Path file = tempDir.resolve("atomic.json");
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
+        config.setKeywords(List.of("垃圾"));
+
+        config.saveToDisk();
+
+        try (var stream = Files.list(tempDir)) {
+            long leftovers = stream
+                    .filter(p -> p.getFileName().toString().endsWith(".tmp"))
+                    .count();
+            assertEquals(0L, leftovers);
+        }
+    }
+
+    /** 带 UTF-8 BOM 的配置文件仍能正常加载（Windows 手工编辑常见） */
+    @Test
+    void loadFileWithBom() throws Exception {
+        Path file = tempDir.resolve("bom.json");
+        Files.writeString(file, "\uFEFF{\"enabled\": false, \"keywords\": [\"bom\"]}");
+
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
+        assertFalse(config.isEnabled());
+        assertEquals(List.of("bom"), config.getKeywords());
+    }
+
+    /** 零字节文件回退默认配置，loadFromDisk 返回 false */
+    @Test
+    void fallbackWhenFileEmpty() throws Exception {
+        Path file = tempDir.resolve("empty.json");
+        Files.createFile(file);
+
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
+        assertTrue(config.isEnabled());
+        assertTrue(config.getKeywords().isEmpty());
+        assertFalse(config.loadFromDisk());
+    }
+
+    /** keywords 字段为 null 时按空列表处理，不抛异常 */
+    @Test
+    void nullKeywordsFieldLoadsEmptyList() throws Exception {
+        Path file = tempDir.resolve("null_keywords.json");
+        Files.writeString(file, "{\"enabled\": true, \"keywords\": null}");
+
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
+        assertTrue(config.getKeywords().isEmpty());
+    }
+
+    /** 缺少 enabled 字段时沿用默认值 true，而不是被 Gson 静默置为 false */
+    @Test
+    void missingEnabledFieldKeepsDefault() throws Exception {
+        Path file = tempDir.resolve("missing_enabled.json");
+        Files.writeString(file, "{\"keywords\": [\"垃圾\"]}");
+
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
+        assertTrue(config.isEnabled());
+        assertEquals(List.of("垃圾"), config.getKeywords());
+    }
+
+    /** 缺少 exemptOwnEcho 字段时沿用默认值 true */
+    @Test
+    void missingExemptOwnEchoKeepsDefault() throws Exception {
+        Path file = tempDir.resolve("missing_exempt.json");
+        Files.writeString(file, "{\"keywords\": [\"垃圾\"]}");
+
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
+        assertTrue(config.isExemptOwnEcho());
+    }
+
+    /** 字段显式为 null 时同样回退默认值，避免手写配置把开关写成 null 后失效 */
+    @Test
+    void nullBooleanFieldKeepsDefault() throws Exception {
+        Path file = tempDir.resolve("null_enabled.json");
+        Files.writeString(file, "{\"enabled\": null, \"exemptOwnEcho\": null, \"keywords\": []}");
+
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(file);
+        assertTrue(config.isEnabled());
+        assertTrue(config.isExemptOwnEcho());
+    }
+
+    /** setKeywords 忽略大小写去重，保留首次出现的写法 */
+    @Test
+    void setKeywordsDeduplicatesCaseInsensitively() {
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(tempDir.resolve("dedupe.json"));
+
+        config.setKeywords(List.of("BadWord", "badword", "BADWORD", "垃圾"));
+
+        assertEquals(List.of("BadWord", "垃圾"), config.getKeywords());
+    }
+
+    /** 超长关键词被拒绝，避免 GUI 写入病态长度的词 */
+    @Test
+    void rejectTooLongKeyword() {
+        ChatBlockConfig config = ChatBlockConfig.fromDisk(tempDir.resolve("too_long.json"));
+        String tooLong = "x".repeat(ChatBlockConfig.MAX_KEYWORD_LENGTH + 1);
+
+        assertFalse(config.addKeyword(tooLong));
+        config.setKeywords(List.of(tooLong, "ok"));
+        assertEquals(List.of("ok"), config.getKeywords());
+    }
 }

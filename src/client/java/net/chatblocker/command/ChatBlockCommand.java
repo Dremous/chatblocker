@@ -21,6 +21,12 @@ public final class ChatBlockCommand {
     public static void register() {
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) ->
 				dispatcher.register(ClientCommands.literal("chatblocker")
+						.executes(context -> {
+							// 不带子命令时给出用法提示，而不是 Brigadier 的原始报错
+							context.getSource().sendFeedback(
+									Component.translatable("chatblocker.command.usage"));
+							return 0;
+						})
 						.then(ClientCommands.literal("add")
 								.then(ClientCommands.argument("keyword", StringArgumentType.greedyString())
 										.executes(ChatBlockCommand::executeAdd)))
@@ -47,7 +53,11 @@ public final class ChatBlockCommand {
             source.sendFeedback(Component.translatable("chatblocker.command.keyword_exists", keyword));
             return 0;
         }
-        config.saveToDisk();
+        if (!config.saveToDisk()) {
+            source.sendFeedback(
+                    Component.translatable("chatblocker.command.keyword_added_unsaved", keyword));
+            return 0;
+        }
         source.sendFeedback(Component.translatable("chatblocker.command.keyword_added", keyword));
         return 1;
     }
@@ -58,25 +68,38 @@ public final class ChatBlockCommand {
         FabricClientCommandSource source = context.getSource();
         ChatBlockConfig config = ChatBlockConfig.INSTANCE;
 
+        if (keyword.isEmpty()) {
+            source.sendFeedback(Component.translatable("chatblocker.command.keyword_empty"));
+            return 0;
+        }
         if (!config.removeKeyword(keyword)) {
             source.sendFeedback(Component.translatable("chatblocker.command.keyword_not_found", keyword));
             return 0;
         }
-        config.saveToDisk();
+        if (!config.saveToDisk()) {
+            source.sendFeedback(
+                    Component.translatable("chatblocker.command.keyword_removed_unsaved", keyword));
+            return 0;
+        }
         source.sendFeedback(Component.translatable("chatblocker.command.keyword_removed", keyword));
         return 1;
     }
 
-    /** /chatblocker list：列出当前全部关键词 */
+    /** /chatblocker list：列出当前全部关键词与启用状态 */
     private static int executeList(CommandContext<FabricClientCommandSource> context) {
         FabricClientCommandSource source = context.getSource();
-        List<String> keywords = ChatBlockConfig.INSTANCE.getKeywords();
+        ChatBlockConfig config = ChatBlockConfig.INSTANCE;
+        List<String> keywords = config.getKeywords();
 
         if (keywords.isEmpty()) {
             source.sendFeedback(Component.translatable("chatblocker.command.keyword_list_empty"));
         } else {
+            // 分隔符统一用英文逗号 + 空格，避免英文客户端出现中文顿号
+            String key = config.isEnabled()
+                    ? "chatblocker.command.keyword_list_enabled"
+                    : "chatblocker.command.keyword_list_disabled";
             source.sendFeedback(Component.translatable(
-                    "chatblocker.command.keyword_list", keywords.size(), String.join("、", keywords)));
+                    key, keywords.size(), String.join(", ", keywords)));
         }
         return 1;
     }

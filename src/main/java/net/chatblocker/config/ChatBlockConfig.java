@@ -8,15 +8,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PushbackReader;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Mod 配置模型：enabled 开关 + 屏蔽关键词列表。
@@ -30,14 +34,17 @@ public final class ChatBlockConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger("chatblocker");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
+    /** 单个关键词的最大长度，超过的条目会被忽略（防止病态长度的词拖慢匹配） */
+    public static final int MAX_KEYWORD_LENGTH = 256;
+
     /** 是否启用屏蔽 */
     private boolean enabled = true;
 
     /** 是否豁免自己消息的回显（离线服务器消息无发送者信息时按文本匹配豁免） */
     private boolean exemptOwnEcho = true;
 
-    /** 屏蔽关键词列表（原始书写，匹配时忽略大小写） */
-    private List<String> keywords = new ArrayList<>();
+    /** 屏蔽关键词列表（原始书写，匹配时忽略大小写）；始终持不可变快照，读写无需加锁 */
+    private List<String> keywords = List.of();
 
     /** 配置文件路径，不参与序列化 */
     private transient Path filePath;
@@ -62,28 +69,31 @@ public final class ChatBlockConfig {
         this.exemptOwnEcho = exemptOwnEcho;
     }
 
-    /** 返回不可变列表视图；修改需通过 addKeyword/removeKeyword/setKeywords 方法 */
+    /** 返回不可变快照；修改需通过 addKeyword/removeKeyword/setKeywords 方法 */
     public List<String> getKeywords() {
-        return Collections.unmodifiableList(keywords);
+        return keywords;
     }
 
     /**
      * 添加屏蔽关键词（忽略大小写去重，与屏蔽匹配语义一致）。
-     * 空白词拒绝添加。调用后需 saveToDisk() 持久化。
+     * 空白词与超长词拒绝添加。调用后需 saveToDisk() 持久化。
      *
-     * @return 添加成功返回 true；空白或已存在（忽略大小写）返回 false
+     * @return 添加成功返回 true；空白、超长或已存在（忽略大小写）返回 false
      */
     public boolean addKeyword(String keyword) {
-        if (keyword == null || keyword.isBlank()) {
+        String trimmed = normalizeKeyword(keyword);
+        if (trimmed == null) {
             return false;
         }
-        String normalized = keyword.trim().toLowerCase(Locale.ROOT);
+        String normalized = trimmed.toLowerCase(Locale.ROOT);
         for (String existing : keywords) {
             if (existing.toLowerCase(Locale.ROOT).equals(normalized)) {
                 return false;
             }
         }
-        keywords.add(keyword.trim());
+        List<String> next = new ArrayList<>(keywords);
+        next.add(trimmed);
+        keywords = List.copyOf(next);
         return true;
     }
 
@@ -94,32 +104,49 @@ public final class ChatBlockConfig {
      * @return 移除成功返回 true；不存在返回 false
      */
     public boolean removeKeyword(String keyword) {
-        if (keyword == null || keyword.isBlank()) {
+        String trimmed = normalizeKeyword(keyword);
+        if (trimmed == null) {
             return false;
         }
-        String normalized = keyword.trim().toLowerCase(Locale.ROOT);
+        String normalized = trimmed.toLowerCase(Locale.ROOT);
         for (int i = 0; i < keywords.size(); i++) {
             if (keywords.get(i).toLowerCase(Locale.ROOT).equals(normalized)) {
-                keywords.remove(i);
+                List<String> next = new ArrayList<>(keywords);
+                next.remove(i);
+                keywords = List.copyOf(next);
                 return true;
             }
         }
         return false;
     }
 
-    /** 替换关键词列表，自动 trim 并过滤 null 与空白项 */
+    /** 替换关键词列表：自动 trim、过滤 null/空白/超长项，并忽略大小写去重（保留首次写法） */
     public void setKeywords(List<String> keywords) {
-        this.keywords = new ArrayList<>();
-        if (keywords != null) {
-            for (String keyword : keywords) {
-                if (keyword != null && !keyword.isBlank()) {
-                    String trimmed = keyword.trim();
-                    if (!trimmed.isEmpty()) {
-                        this.keywords.add(trimmed);
-                    }
-                }
-            }
+        if (keywords == null || keywords.isEmpty()) {
+            this.keywords = List.of();
+            return;
         }
+        Map<String, String> unique = new LinkedHashMap<>();
+        for (String keyword : keywords) {
+            String trimmed = normalizeKeyword(keyword);
+            if (trimmed == null) {
+                continue;
+            }
+            unique.putIfAbsent(trimmed.toLowerCase(Locale.ROOT), trimmed);
+        }
+        this.keywords = List.copyOf(unique.values());
+    }
+
+    /** 规范化单个关键词：null、空白、超长返回 null，否则返回 trim 后的文本 */
+    private static String normalizeKeyword(String keyword) {
+        if (keyword == null) {
+            return null;
+        }
+        String trimmed = keyword.trim();
+        if (trimmed.isEmpty() || trimmed.length() > MAX_KEYWORD_LENGTH) {
+            return null;
+        }
+        return trimmed;
     }
 
     /** 设置配置文件路径（由 Mod 入口在启动时调用一次） */
@@ -136,7 +163,7 @@ public final class ChatBlockConfig {
         if (filePath == null || !Files.exists(filePath)) {
             return false;
         }
-        try (Reader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8)) {
+        try (Reader reader = stripBom(Files.newBufferedReader(filePath, StandardCharsets.UTF_8))) {
             ChatBlockConfig loaded = GSON.fromJson(reader, ChatBlockConfig.class);
             // 文件内容为字面 null 时 fromJson 返回 null，视为无效配置
             if (loaded == null) {
@@ -154,22 +181,56 @@ public final class ChatBlockConfig {
         }
     }
 
-    /** 将当前配置写入磁盘；路径未设置时静默跳过。写入失败仅记录警告，不影响游戏。 */
-    public synchronized void saveToDisk() {
+    /**
+     * 将当前配置原子写入磁盘；路径未设置或写入失败时返回 false，不影响游戏。
+     * 先写同目录临时文件再替换，避免中断时把已有配置截断。
+     */
+    public synchronized boolean saveToDisk() {
         if (filePath == null) {
-            return;
+            return false;
         }
+        Path temp = null;
         try {
-            // 相对路径可能没有父目录，此时无需创建
-            if (filePath.getParent() != null) {
-                Files.createDirectories(filePath.getParent());
+            // 相对路径可能没有父目录；toAbsolutePath 保证父目录非 null 且存在
+            Path parent = filePath.toAbsolutePath().getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
             }
-            try (Writer writer = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8)) {
+            temp = Files.createTempFile(parent, "chatblocker", ".json.tmp");
+            try (Writer writer = Files.newBufferedWriter(temp, StandardCharsets.UTF_8)) {
                 GSON.toJson(this, writer);
             }
+            try {
+                Files.move(temp, filePath,
+                        StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                // 文件系统不支持原子替换时退化为普通替换
+                Files.move(temp, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+            temp = null;
+            return true;
         } catch (IOException e) {
             LOGGER.warn("配置写入失败：{}", filePath, e);
+            return false;
+        } finally {
+            if (temp != null) {
+                try {
+                    Files.deleteIfExists(temp);
+                } catch (IOException ignored) {
+                    // 清理临时文件失败不影响主流程
+                }
+            }
         }
+    }
+
+    /** 跳过 UTF-8 BOM，避免 Windows 手工编辑保存后 Gson 解析失败 */
+    private static Reader stripBom(Reader reader) throws IOException {
+        PushbackReader pushback = new PushbackReader(reader, 1);
+        int first = pushback.read();
+        if (first != -1 && first != '\uFEFF') {
+            pushback.unread(first);
+        }
+        return pushback;
     }
 
     /** 工厂方法：从指定路径加载并返回新实例（供测试与独立加载使用） */

@@ -1,9 +1,16 @@
 #
 # https://help.github.com/articles/dealing-with-line-endings/
 #
+# 默认按文本处理并统一为 LF：仓库在 Windows 与 Linux（CI）双端开发，
+# 避免 CRLF 混入导致构建脚本、JSON、YAML 出现差异。
+* text=auto eol=lf
+
 # Linux start script should use lf
 /gradlew        text eol=lf
 
 # These are Windows script files and should use crlf
 *.bat           text eol=crlf
 
+# 二进制资源不做换行转换
+*.png           binary
+*.jar           binary
